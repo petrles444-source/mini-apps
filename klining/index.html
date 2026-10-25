@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Расчёт уборки — Свежо</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
     --accent:#159a94; --accent-2:#0f7a75; --accent-soft:#e7f6f5;
@@ -30,7 +29,7 @@
     font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     padding-bottom:calc(28px + env(safe-area-inset-bottom));
   }
-  .app{max-width:520px;margin:0 auto}
+  .app{max-width:520px;margin:0 auto;position:relative}
 
   header{
     padding:26px 20px 30px;text-align:center;color:#fff;
@@ -172,10 +171,21 @@
   .bubble{background:var(--accent-soft);border-radius:14px 14px 14px 4px;padding:11px 13px;font-size:14px;line-height:1.5;white-space:pre-line}
 
   .foot{text-align:center;font-size:12px;color:var(--muted);padding:18px 22px 0;line-height:1.5}
+
+  /* Возврат на витрину примеров. */
+  .nazad{
+    position:absolute;top:12px;left:12px;z-index:5;
+    display:inline-flex;align-items:center;gap:6px;padding:8px 13px;
+    border-radius:999px;background:rgba(0,0,0,.22);color:#fff;
+    text-decoration:none;font-size:13px;font-weight:600;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+  .nazad:hover{background:rgba(0,0,0,.34)}
 </style>
 </head>
 <body>
 <div class="app">
+  <a class="nazad" href="../">← Все примеры</a>
 
   <header>
     <div class="mark">🧽</div>

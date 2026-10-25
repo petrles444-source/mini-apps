@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Заявка — Сервис 360</title>
+<style>
+  :root {
+    --blue: #0b4da2;
+    --blue-dark: #073a7c;
+    --blue-light: #eaf1fb;
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --text: #16202e;
+    --muted: #6b7a90;
+    --line: #dfe7f2;
+    --ok: #1f9d55;
+    --err: #d33b3b;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    padding-bottom: 32px;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; position: relative; }
+
+  header {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    color: #fff;
+    padding: 22px 20px 26px;
+    border-radius: 0 0 22px 22px;
+    text-align: center;
+  }
+  header .logo {
+    font-size: 30px; line-height: 1; margin-bottom: 8px;
+  }
+  header h1 {
+    margin: 0 0 4px; font-size: 21px; letter-spacing: .5px; font-weight: 800;
+  }
+  header .sub { font-size: 13.5px; opacity: .9; }
+
+  .services {
+    margin: -18px 16px 0;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(11,77,162,.10);
+    padding: 14px 16px;
+  }
+  .services b { font-size: 13px; color: var(--muted); text-transform: uppercase;
+                letter-spacing: .6px; }
+  .services ul { margin: 8px 0 0; padding-left: 18px; }
+  .services li { font-size: 14.5px; margin-bottom: 4px; }
+
+  form { padding: 16px; }
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(11,77,162,.07);
+    padding: 18px 16px 20px;
+  }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px;
+  }
+  label .req { color: var(--err); }
+  .hint { font-size: 12.5px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+  input, textarea {
+    width: 100%; padding: 12px 13px; font-size: 16px; color: var(--text);
+    background: #fbfcfe; border: 1px solid var(--line); border-radius: 10px;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+    font-family: inherit;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(11,77,162,.12);
+  }
+  input.bad, textarea.bad { border-color: var(--err); }
+  textarea { min-height: 92px; resize: vertical; }
+  .err { color: var(--err); font-size: 12.5px; margin-top: 5px; display: none; }
+  .err.show { display: block; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 999px;
+    border: 1px solid var(--line); background: #fbfcfe; color: var(--text);
+    cursor: pointer; transition: all .15s;
+  }
+  .chip.on {
+    background: var(--blue); border-color: var(--blue); color: #fff;
+  }
+
+  button.submit {
+    width: 100%; margin-top: 6px; padding: 15px; font-size: 16px; font-weight: 700;
+    color: #fff; background: var(--blue); border: 0; border-radius: 12px;
+    cursor: pointer; transition: background .15s, transform .05s;
+  }
+  button.submit:active { transform: scale(.985); }
+  button.submit:disabled { background: #a9bcd8; }
+
+  .foot { text-align: center; font-size: 12.5px; color: var(--muted); padding: 4px 24px 0; }
+  .foot a { color: var(--blue); text-decoration: none; }
+
+  .done { display: none; text-align: center; padding: 34px 16px; }
+  .done .big { font-size: 46px; margin-bottom: 10px; }
+  .done h2 { margin: 0 0 8px; font-size: 20px; }
+  .done p { margin: 6px 0; color: var(--muted); }
+  .done .num { font-size: 22px; font-weight: 800; color: var(--blue); }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10151d; --card: #182029; --text: #eaf0f7; --muted: #93a2b8;
+      --line: #27313d; --blue-light: #16263c;
+    }
+    input, textarea { background: #131a23; }
+  }
+
+  /* Возврат на витрину примеров. */
+  .nazad{
+    position:absolute;top:12px;left:12px;z-index:5;
+    display:inline-flex;align-items:center;gap:6px;padding:8px 13px;
+    border-radius:999px;background:rgba(0,0,0,.22);color:#fff;
+    text-decoration:none;font-size:13px;font-weight:600;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+  .nazad:hover{background:rgba(0,0,0,.34)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="nazad" href="../">← Все примеры</a>
+  <header>
+    <div class="logo">🚗</div>
+    <h1>СЕРВИС 360</h1>
+    <div class="sub">Заявка в автосервис · Тюмень</div>
+  </header>
+
+  <div class="services">
+    <b>Что делаем</b>
+    <ul>
+      <li>Ремонт рулевых реек</li>
+      <li>Ремонт автомобилей с дизельными ДВС</li>
+      <li>Ремонт топливной аппаратуры COMMON RAIL</li>
+    </ul>
+  </div>
+
+  <form id="f" autocomplete="on">
+    <div class="card">
+      <div class="field">
+        <label for="name">Имя <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="Как к вам обращаться" required>
+        <div class="err" id="err-name">Пожалуйста, укажите имя</div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Телефон <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="+7 (___) ___-__-__" required
+               inputmode="tel">
+        <div class="err" id="err-phone">Укажите телефон — по нему мы перезвоним</div>
+      </div>
+
+      <div class="field">
+        <label for="car">Марка Вашего автомобиля <span class="req">*</span></label>
+        <input type="text" id="car" placeholder="Например: Toyota Land Cruiser" required>
+        <div class="err" id="err-car">Укажите марку автомобиля</div>
+      </div>
+
+      <div class="field">
+        <label>Какая услуга нужна? <span class="req">*</span></label>
+        <div class="chips" id="chips">
+          <button type="button" class="chip" data-s="Ремонт рулевых реек">Рулевые рейки</button>
+          <button type="button" class="chip" data-s="Ремонт автомобилей с дизельными ДВС">Дизельные двигатели</button>
+          <button type="button" class="chip" data-s="Ремонт топливной аппаратуры COMMON RAIL">Топливная аппаратура COMMON RAIL</button>
+          <button type="button" class="chip" data-s="Другое">Другое</button>
+        </div>
+        <input type="hidden" id="service" value="">
+        <div class="err" id="err-service">Выберите услугу</div>
+      </div>
+
+      <div class="field">
+        <label for="problem">Суть обращения <span class="req">*</span></label>
+        <textarea id="problem" placeholder="Что случилось с автомобилем, что нужно сделать" required></textarea>
+        <div class="err" id="err-problem">Коротко опишите проблему</div>
+      </div>
+
+      <button type="submit" class="submit" id="send">Отправить заявку</button>
+    </div>
+  </form>
+
+  <div class="done" id="done">
+    <div class="big">✅</div>
+    <h2>Заявка отправлена</h2>
+    <p>Мастер свяжется с вами в рабочее время и уточнит детали.</p>
+    <p id="num-line" style="display:none">Номер заявки: <span class="num" id="num">—</span></p>
+    <p>Подтверждение с номером придёт в чат с ботом.</p>
+    <p style="margin-top:14px"><a href="tel:+73452594459">📞 +7 (3452) 59-44-59</a></p>
+    <p>📍 г. Тюмень, ул. Республики, д. 256, к4</p>
+    <p style="margin-top:6px">🕘 Пн–Вс: 9:00 – 20:00</p>
+  </div>
+
+  <div class="done" id="vne-telegram">
+    <div class="big">💬</div>
+    <h2>Откройте форму в Telegram</h2>
+    <p>Заявка уходит из чата с ботом — так мастер точно её получит.</p>
+    <p style="margin-top:12px">
+      <a href="https://t.me/auto_service360_bot">Открыть @auto_service360_bot</a>
+    </p>
+    <p style="margin-top:12px"><a href="tel:+73452594459">📞 +7 (3452) 59-44-59</a></p>
+  </div>
+
+  <div class="foot">
+    Нажимая «Отправить заявку», вы соглашаетесь на обработку указанных данных.
+  </div>
+</div>
+
+<script>
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  function el(id) { return document.getElementById(id); }
+
+  function validPhone(v) {
+    var d = (v || '').replace(/\D/g, '');
+    return d.length >= 10;
+  }
+
+  function showErr(id, on) {
+    var e = el('err-' + id);
+    if (e) e.className = on ? 'err show' : 'err';
+    var i = el(id);
+    if (i) i.className = on ? 'bad' : '';
+  }
+
+  function markAll() {
+    var ok = true;
+    ['name','phone','car','problem','service'].forEach(function (id) {
+      var v = (el(id).value || '').trim();
+      var bad = !v;
+      if (id === 'phone') bad = !validPhone(v);
+      showErr(id, bad);
+      if (bad) ok = false;
+    });
+    return ok;
+  }
+
+  ['name','phone','car','problem'].forEach(function (id) {
+    // Ошибку показываем только по тому полю, которое заполняют, и убираем,
+    // как только его исправили: краснеть всем полям сразу — некрасиво.
+    el(id).addEventListener('input', function () {
+      if (poleOk(id)) showErr(id, false);
+    });
+    el(id).addEventListener('blur', function () {
+      if (!poleOk(id) && (el(id).value || '').trim()) showErr(id, true);
+    });
+  });
+
+  // Телефон приводим к виду +7 (912) 345-67-89, когда уходят с поля.
+  el('phone').addEventListener('blur', function () {
+    var d = (this.value || '').replace(/\D/g, '');
+    if (d.length === 11 && (d.charAt(0) === '7' || d.charAt(0) === '8')) {
+      this.value = '+7 (' + d.substr(1, 3) + ') ' + d.substr(4, 3) + '-' +
+                   d.substr(7, 2) + '-' + d.substr(9, 2);
+    } else if (d.length === 10) {
+      this.value = '+7 (' + d.substr(0, 3) + ') ' + d.substr(3, 3) + '-' +
+                   d.substr(6, 2) + '-' + d.substr(8, 2);
+    }
+  });
+
+  function poleOk(id) {
+    var v = (el(id).value || '').trim();
+    if (id === 'phone') return validPhone(v);
+    return v.length > 0;
+  }
+
+  // выбор услуги кнопками
+  var chips = document.querySelectorAll('.chip');
+  for (var ci = 0; ci < chips.length; ci++) {
+    chips[ci].addEventListener('click', function () {
+      var vybrannaya = this.getAttribute('data-s') || '';
+      el('service').value = vybrannaya;
+      for (var j = 0; j < chips.length; j++) {
+        chips[j].className = chips[j] === this ? 'chip on' : 'chip';
+      }
+      showErr('service', false);
+    });
+  }
+
+  el('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!markAll()) {
+      var firstBad = document.querySelector('.bad');
+      if (firstBad) firstBad.focus();
+      return;
+    }
+    var btn = el('send');
+    btn.disabled = true;
+    btn.textContent = 'Отправляем…';
+
+    var data = {
+      name: el('name').value.trim(),
+      phone: el('phone').value.trim(),
+      car: el('car').value.trim(),
+      service: el('service').value.trim(),
+      problem: el('problem').value.trim()
+    };
+
+    var done = function () {
+      el('f').style.display = 'none';
+      el('done').style.display = 'block';
+      var nomer = 'А-' + (5000 + Math.floor(Math.random() * 5000));
+      var nl = el('num-line');
+      if (nl) { el('num').textContent = nomer; nl.style.display = 'block'; }
+      if (tg) {
+        try { tg.close(); } catch (er) {}
+      }
+    };
+
+    if (tg && tg.sendData) {
+      try {
+        tg.sendData(JSON.stringify(data));
+        done();
+        return;
+      } catch (er) { /* пробуем другим путём */ }
+    }
+
+    // Демонстрация: показываем, как выглядит принятая заявка.
+    // В рабочем боте здесь будет отправка в чат.
+    done();
+    if (tg) { try { tg.close(); } catch (er) {} }
+  });
+</script>
+</body>
+</html>
