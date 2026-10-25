@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мини-приложения для Telegram — SORA</title>
+<style>
+  :root{
+    --bg:#0b0b0b; --card:#141414; --card-2:#191919;
+    --acid:#b6ff00; --text:#f2f2f2; --muted:#8a8a8a;
+    --line:#242424;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  header{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .mono{
+    font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--acid);
+  }
+  h1{
+    margin:16px 0 12px;font-size:clamp(28px,5vw,46px);line-height:1.08;
+    letter-spacing:-.02em;font-weight:800;
+  }
+  h1 em{font-style:normal;color:var(--acid)}
+  .lead{max-width:620px;color:var(--muted);font-size:16px;line-height:1.6}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+    gap:14px;padding:34px 0 10px;
+  }
+  .card{
+    display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
+    border-radius:18px;padding:22px;text-decoration:none;color:inherit;
+    transition:border-color .18s,transform .18s,background .18s;
+  }
+  .card:hover{border-color:var(--acid);background:var(--card-2);transform:translateY(-2px)}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px}
+  .card .num{
+    font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    color:var(--muted);letter-spacing:.12em;
+  }
+  .card .em{font-size:26px;line-height:1}
+  .card h2{margin:0 0 6px;font-size:19px;font-weight:750;letter-spacing:-.01em}
+  .card .brand{
+    font:600 10.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--acid);margin-bottom:10px;
+  }
+  .card p{margin:0 0 18px;font-size:14px;color:var(--muted);line-height:1.5;flex:1}
+  .card .go{
+    display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;
+    color:var(--text);
+  }
+  .card:hover .go{color:var(--acid)}
+  .card .go span{transition:transform .18s}
+  .card:hover .go span{transform:translateX(4px)}
+
+  .how{
+    margin:30px 0 0;border-top:1px solid var(--line);padding:30px 0 60px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:26px;
+  }
+  .how .step .n{
+    font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    color:var(--acid);letter-spacing:.12em;margin-bottom:9px;
+  }
+  .how .step h3{margin:0 0 5px;font-size:15px;font-weight:700}
+  .how .step p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.5}
+
+  footer{
+    border-top:1px solid var(--line);padding:22px 0 40px;
+    font-size:12.5px;color:var(--muted);
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  }
+  footer a{color:var(--muted);text-decoration:none}
+  footer a:hover{color:var(--acid)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="mono">SORA · мини-приложения</div>
+    <h1>Формы, которые<br><em>доводят до оплаты</em></h1>
+    <p class="lead">
+      Шесть рабочих примеров для Telegram. Не картинки — можно пройти целиком
+      и посмотреть, как считается цена, выбирается время и что приходит в чат.
+    </p>
+  </header>
+
+  <div class="grid">
+
+    <a class="card" href="https://petrles444-source.github.io/avto360-form/" target="_blank" rel="noopener">
+      <div class="top"><span class="num">01 / автосервис</span><span class="em">🔧</span></div>
+      <div class="brand">Сервис 360</div>
+      <h2>Заявка в автосервис</h2>
+      <p>Клиент выбирает услугу, описывает проблему и оставляет контакты. Заявка приходит в бот готовой карточкой.</p>
+      <span class="go">Открыть <span>→</span></span>
+    </a>
+
+    <a class="card" href="manikyur/" target="_blank" rel="noopener">
+      <div class="top"><span class="num">02 / маникюр</span><span class="em">💅</span></div>
+      <div class="brand">Пудра</div>
+      <h2>Запись на маникюр</h2>
+      <p>Услуга с ценой и длительностью, свободные окна на три дня, сумма и время собираются сами.</p>
+      <span class="go">Открыть <span>→</span></span>
+    </a>
+
+    <a class="card" href="sushka-tela/" target="_blank" rel="noopener">
+      <div class="top"><span class="num">03 / питание</span><span class="em">🔥</span></div>
+      <div class="brand">Сушка Тела</div>
+      <h2>Анкета перед работой</h2>
+      <p>Тринадцать вопросов в четырёх блоках. Обязательный только первый — остальное можно пропустить.</p>
+      <span class="go">Открыть <span>→</span></span>
+    </a>
+
+    <a class="card" href="stomatologiya/" target="_blank" rel="noopener">
+      <div class="top"><span class="num">04 / стоматология</span><span class="em">🦷</span></div>
+      <div class="brand">Зубастик</div>
+      <h2>Запись к детскому врачу</h2>
+      <p>Если выбрано «болит зуб» — форма сама перестраивается на срочный приём и показывает телефон.</p>
+      <span class="go">Открыть <span>→</span></span>
+    </a>
+
+    <a class="card" href="klining/" target="_blank" rel="noopener">
+      <div class="top"><span class="num">05 / клининг</span><span class="em">🧽</span></div>
+      <div class="brand">Свежо</div>
+      <h2>Расчёт уборки</h2>
+      <p>Ползунок площади, тип уборки и доп. услуги. Цена и время меняются на глазах, без звонка.</p>
+      <span class="go">Открыть <span>→</span></span>
+    </a>
+
+    <a class="card" href="gruming/" target="_blank" rel="noopener">
+      <div class="top"><span class="num">06 / груминг</span><span class="em">🐾</span></div>
+      <div class="brand">Лапа</div>
+      <h2>Запись в груминг-салон</h2>
+      <p>Цена зависит от размера питомца и набора услуг. Время визита считается автоматически.</p>
+      <span class="go">Открыть <span>→</span></span>
+    </a>
+
+  </div>
+
+  <div class="how">
+    <div class="step">
+      <div class="n">01</div>
+      <h3>Свой цвет и шрифт</h3>
+      <p>Каждая форма выглядит как бренд клиента, а не как типовая анкета.</p>
+    </div>
+    <div class="step">
+      <div class="n">02</div>
+      <h3>Светлая и тёмная тема</h3>
+      <p>Подхватывает оформление Telegram — не слепит в тёмном режиме.</p>
+    </div>
+    <div class="step">
+      <div class="n">03</div>
+      <h3>Заявка в бот</h3>
+      <p>Данные уходят готовой карточкой: ничего не нужно переписывать руками.</p>
+    </div>
+    <div class="step">
+      <div class="n">04</div>
+      <h3>Один файл</h3>
+      <p>Каждая форма — отдельный HTML без сборки и зависимостей. Грузится мгновенно.</p>
+    </div>
+  </div>
+
+  <footer>
+    <span>SORA · digital-агентство</span>
+    <a href="https://vk.ru/soracompany" target="_blank" rel="noopener">vk.ru/soracompany</a>
+  </footer>
+
+</div>
+</body>
+</html>

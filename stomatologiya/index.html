@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Запись к детскому стоматологу — Зубастик</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --accent:#2b7fd4; --accent-2:#1b5fa8; --accent-soft:#e9f2fc;
+    --bg:#f5f9fe; --card:#ffffff; --text:#132030; --muted:#74879c;
+    --line:#dce8f6; --alarm:#e0603a; --alarm-soft:#fdeee9; --ok:#1f9d55;
+  }
+  html.dark{
+    --accent:#5aa6ee; --accent-2:#2b7fd4; --accent-soft:#152234;
+    --bg:#0e141c; --card:#161f2a; --text:#e9f1fa; --muted:#8ba0b8;
+    --line:#233043; --alarm:#f0805e; --alarm-soft:#2b1a15;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not(.light){
+      --accent:#5aa6ee; --accent-2:#2b7fd4; --accent-soft:#152234;
+      --bg:#0e141c; --card:#161f2a; --text:#e9f1fa; --muted:#8ba0b8;
+      --line:#233043; --alarm:#f0805e; --alarm-soft:#2b1a15;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);min-height:100vh;
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .app{max-width:520px;margin:0 auto}
+
+  header{
+    padding:26px 20px 30px;text-align:center;color:#fff;
+    background:linear-gradient(140deg,var(--accent) 0%,var(--accent-2) 100%);
+    border-radius:0 0 26px 26px;
+  }
+  header .mark{
+    width:56px;height:56px;margin:0 auto 12px;border-radius:18px;
+    background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:27px;
+  }
+  header h1{margin:0 0 5px;font-size:20px;letter-spacing:.4px;font-weight:800}
+  header .sub{font-size:13.5px;opacity:.92}
+
+  .steps{
+    display:flex;gap:6px;margin:-14px 18px 0;background:var(--card);border-radius:14px;
+    padding:11px 12px;box-shadow:0 6px 20px rgba(20,60,110,.10);position:relative;z-index:2;
+  }
+  .steps i{flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .25s}
+  .steps i.on{background:var(--accent)}
+
+  main{padding:18px 16px 0}
+  .screen{display:none;animation:in .25s ease both}
+  .screen.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h2.t{margin:0 0 3px;font-size:17px;font-weight:750}
+  p.hint{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+
+  .card{
+    background:var(--card);border-radius:16px;padding:6px;
+    box-shadow:0 2px 12px rgba(20,60,110,.07);margin-bottom:14px;
+  }
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;
+    border:0;border-radius:12px;padding:13px 12px;cursor:pointer;font:inherit;
+    color:inherit;transition:background .15s;
+  }
+  .opt+.opt{border-top:1px solid var(--line);border-radius:0}
+  .opt.on{background:var(--accent-soft)}
+  .opt .ic{font-size:22px;flex:none;width:28px;text-align:center}
+  .opt .body{flex:1;min-width:0}
+  .opt .name{display:block;font-size:15px;font-weight:600}
+  .opt .meta{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .opt .dot{
+    width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--line);
+    display:grid;place-items:center;
+  }
+  .opt.on .dot{border-color:var(--accent)}
+  .opt.on .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+
+  .ages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .age{
+    padding:14px 6px;border-radius:14px;border:1px solid var(--line);background:var(--card);
+    font:inherit;color:var(--text);cursor:pointer;text-align:center;transition:all .15s;
+  }
+  .age b{display:block;font-size:16px;font-weight:700}
+  .age span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .age.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .age.on span{color:rgba(255,255,255,.85)}
+
+  .alarm{
+    display:none;align-items:flex-start;gap:11px;background:var(--alarm-soft);
+    border:1px solid var(--alarm);border-radius:14px;padding:13px 14px;margin-bottom:14px;
+    font-size:13.5px;line-height:1.45;
+  }
+  .alarm.show{display:flex}
+  .alarm .ic{font-size:19px;line-height:1.2}
+
+  .days{display:flex;gap:8px;margin-bottom:12px}
+  .day{
+    flex:1;padding:9px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    font:inherit;cursor:pointer;text-align:center;transition:all .15s;color:var(--text);
+  }
+  .day b{display:block;font-size:14px;font-weight:700}
+  .day span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .day.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .day.on span{color:rgba(255,255,255,.85)}
+
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .slot{
+    padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    font:inherit;font-size:15px;font-weight:600;cursor:pointer;color:var(--text);transition:all .15s;
+  }
+  .slot.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .slot.busy{color:var(--muted);background:transparent;border-style:dashed;cursor:not-allowed;font-weight:400;font-size:12.5px}
+
+  label.f{display:block;font-size:13.5px;font-weight:600;margin:0 0 6px 2px}
+  input[type=text],input[type=tel]{
+    width:100%;padding:13px 14px;font-size:16px;font-family:inherit;color:var(--text);
+    background:var(--card);border:1px solid var(--line);border-radius:12px;outline:none;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.bad{border-color:#d33b3b}
+  .field{margin-bottom:13px}
+  .err{color:#d33b3b;font-size:12.5px;margin-top:5px;display:none}
+  .err.show{display:block}
+
+  .summary{background:var(--accent-soft);border-radius:14px;padding:14px 16px;margin:16px 0 14px}
+  .summary .row{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:3px 0}
+  .summary .row span:first-child{color:var(--muted)}
+  .summary .row b{font-weight:650;text-align:right}
+
+  .btn{
+    width:100%;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;
+    background:var(--accent);border:0;border-radius:14px;cursor:pointer;
+    transition:background .15s,transform .06s;
+  }
+  .btn:active{transform:scale(.99)}
+  .btn:disabled{background:var(--muted);cursor:default}
+  .btn.ghost{background:transparent;color:var(--muted);font-weight:500;font-size:14.5px;padding:12px;margin-top:6px}
+  .nav{display:flex;gap:10px;margin-top:6px}
+  .nav .btn{flex:1}
+  .nav .btn.back{flex:0 0 auto;width:auto;padding:16px 22px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+  .done{text-align:center;padding:30px 8px 10px}
+  .done .tick{
+    width:74px;height:74px;margin:0 auto 16px;border-radius:50%;background:var(--accent-soft);
+    display:grid;place-items:center;font-size:36px;
+    animation:pop .35s cubic-bezier(.2,1.4,.5,1) both;
+  }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{margin:0 0 6px;font-size:21px}
+  .done p{margin:4px 0;color:var(--muted);font-size:14.5px}
+  .done .num{font-size:15px;font-weight:700;color:var(--accent);margin:10px 0}
+
+  .chat{
+    margin:20px 0 0;background:var(--card);border-radius:16px;padding:14px;
+    box-shadow:0 2px 12px rgba(20,60,110,.07);text-align:left;
+  }
+  .chat .who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .bubble{
+    background:var(--accent-soft);border-radius:14px 14px 14px 4px;padding:11px 13px;
+    font-size:14px;line-height:1.5;white-space:pre-line;
+  }
+  .foot{text-align:center;font-size:12px;color:var(--muted);padding:18px 22px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="mark">🦷</div>
+    <h1>ЗУБАСТИК</h1>
+    <div class="sub">детская стоматология · без слёз и уговоров</div>
+  </header>
+
+  <div class="steps"><i class="on"></i><i></i><i></i></div>
+
+  <main>
+
+    <!-- ШАГ 1 -->
+    <section class="screen on" id="s1">
+      <h2 class="t">Сколько лет ребёнку?</h2>
+      <p class="hint">От возраста зависит, какой врач примет.</p>
+      <div class="ages" id="vozrast"></div>
+
+      <h2 class="t" style="margin-top:4px">Что случилось?</h2>
+      <p class="hint">Если болит — скажите сразу, примем сегодня.</p>
+      <div class="card" id="povod"></div>
+      <button class="btn" id="next1" disabled>Дальше</button>
+    </section>
+
+    <!-- ШАГ 2 -->
+    <section class="screen" id="s2">
+      <h2 class="t" id="t2">Когда удобно прийти?</h2>
+      <p class="hint" id="h2">Свободное время у детского врача.</p>
+      <div class="alarm" id="srochno">
+        <span class="ic">⚠️</span>
+        <span>Если у ребёнка сильная боль или отёк — не ждите записи, позвоните:
+          <a href="tel:+73452594459" style="color:inherit;font-weight:700">+7 (3452) 59-44-59</a>.
+          Мы принимаем срочных в день обращения.</span>
+      </div>
+      <div class="days" id="dni"></div>
+      <div class="slots" id="sloty"></div>
+      <div class="nav">
+        <button class="btn back" data-back="1">←</button>
+        <button class="btn" id="next2" disabled>Дальше</button>
+      </div>
+    </section>
+
+    <!-- ШАГ 3 -->
+    <section class="screen" id="s3">
+      <h2 class="t">Как вас зовут?</h2>
+      <p class="hint">Администратор перезвонит и подтвердит время.</p>
+      <div class="field">
+        <label class="f" for="imya">Ваше имя</label>
+        <input type="text" id="imya" placeholder="Имя родителя" autocomplete="name">
+        <div class="err" id="e-imya">Напишите, как к вам обращаться</div>
+      </div>
+      <div class="field">
+        <label class="f" for="tel">Телефон</label>
+        <input type="tel" id="tel" placeholder="+7 (___) ___-__-__" inputmode="tel" autocomplete="tel">
+        <div class="err" id="e-tel">Без телефона не сможем подтвердить</div>
+      </div>
+      <div class="summary" id="itog"></div>
+      <button class="btn" id="zapis">Записаться</button>
+      <div class="nav"><button class="btn back" data-back="2">←</button></div>
+    </section>
+
+    <!-- ГОТОВО -->
+    <section class="screen" id="s4">
+      <div class="done">
+        <div class="tick">✓</div>
+        <h2 id="zagl">Записали</h2>
+        <div class="num" id="nomer">—</div>
+        <p id="kogda">—</p>
+        <p>Администратор позвонит в течение 15 минут в рабочее время.</p>
+      </div>
+      <div class="chat">
+        <div class="who">так это выглядит в чате с ботом</div>
+        <div class="bubble" id="soobshenie">—</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="foot" id="podval">
+    Нажимая «Записаться», вы соглашаетесь на обработку указанных данных.
+  </div>
+</div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    if (tg.colorScheme === "dark") document.documentElement.classList.add("dark");
+    if (tg.colorScheme === "light") document.documentElement.classList.add("light");
+  }
+  function el(id) { return document.getElementById(id); }
+  function tap() {
+    if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+  }
+
+  var VOZRAST = [
+    { id: "0-2", name: "0–2", meta: "грудничок" },
+    { id: "3-6", name: "3–6", meta: "садик" },
+    { id: "7-10", name: "7–10", meta: "школа" },
+    { id: "11-14", name: "11–14", meta: "смена зубов" },
+    { id: "15-17", name: "15–17", meta: "подросток" },
+    { id: "18+", name: "18+", meta: "ко взрослому" }
+  ];
+
+  var POVODY = [
+    { id: "bol", name: "Болит зуб", meta: "нужно сегодня", ic: "🤕", srochno: true },
+    { id: "profil", name: "Профилактика", meta: "осмотр, чистка, фторирование", ic: "🪥" },
+    { id: "lechenie", name: "Лечение", meta: "кариес, пломба", ic: "🦷" },
+    { id: "prikus", name: "Прикус и брекеты", meta: "консультация ортодонта", ic: "📐" },
+    { id: "moloch", name: "Шатается молочный зуб", meta: "посмотреть, не мешает ли", ic: "🌱" }
+  ];
+
+  var DEN = [
+    { label: "сегодня", day: "пт", slots: ["09:00", "10:30", "12:00", null, "16:30", "18:00"] },
+    { label: "завтра",  day: "сб", slots: ["09:30", null, "11:30", "14:00", "16:00", null] },
+    { label: "послезавтра", day: "вс", slots: [null, "10:00", "12:30", "15:00", null, "17:30"] }
+  ];
+
+  var v = { vozrast: null, povod: null, den: 0, slot: null };
+
+  var vozrastBox = el("vozrast");
+  VOZRAST.forEach(function (x) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "age";
+    b.innerHTML = "<b></b><span></span>";
+    b.querySelector("b").textContent = x.name;
+    b.querySelector("span").textContent = x.meta;
+    b.addEventListener("click", function () {
+      tap(); v.vozrast = x;
+      var vse = vozrastBox.querySelectorAll(".age");
+      for (var i = 0; i < vse.length; i++) vse[i].className = vse[i] === b ? "age on" : "age";
+      gotov();
+    });
+    vozrastBox.appendChild(b);
+  });
+
+  var povodBox = el("povod");
+  POVODY.forEach(function (p) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "opt";
+    b.innerHTML = '<span class="ic"></span><span class="body"><span class="name"></span><span class="meta"></span></span><span class="dot"></span>';
+    b.querySelector(".ic").textContent = p.ic;
+    b.querySelector(".name").textContent = p.name;
+    b.querySelector(".meta").textContent = p.meta;
+    b.addEventListener("click", function () {
+      tap(); v.povod = p;
+      var vse = povodBox.querySelectorAll(".opt");
+      for (var i = 0; i < vse.length; i++) vse[i].className = vse[i] === b ? "opt on" : "opt";
+      gotov();
+    });
+    povodBox.appendChild(b);
+  });
+
+  function gotov() { el("next1").disabled = !(v.vozrast && v.povod); }
+
+  /* время */
+  var dniBox = el("dni");
+  DEN.forEach(function (d, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "day" + (i === 0 ? " on" : "");
+    b.innerHTML = "<b></b><span></span>";
+    b.querySelector("b").textContent = d.label;
+    b.querySelector("span").textContent = d.day;
+    b.addEventListener("click", function () {
+      tap(); v.den = i; v.slot = null;
+      var vse = dniBox.querySelectorAll(".day");
+      for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "day on" : "day";
+      sloty();
+    });
+    dniBox.appendChild(b);
+  });
+
+  function sloty() {
+    var box = el("sloty");
+    box.innerHTML = "";
+    el("next2").disabled = true;
+    DEN[v.den].slots.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button";
+      if (!s) { b.className = "slot busy"; b.textContent = "занято"; b.disabled = true; }
+      else {
+        b.className = "slot"; b.textContent = s;
+        b.addEventListener("click", function () {
+          tap(); v.slot = s;
+          var vse = box.querySelectorAll(".slot");
+          for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "slot on" : "slot";
+          el("next2").disabled = false;
+        });
+      }
+      box.appendChild(b);
+    });
+  }
+  sloty();
+
+  function pokazat(n) {
+    var ekrany = document.querySelectorAll(".screen");
+    for (var i = 0; i < ekrany.length; i++) ekrany[i].className = "screen";
+    el("s" + n).className = "screen on";
+    var polosy = document.querySelectorAll(".steps i");
+    for (var k = 0; k < polosy.length; k++) polosy[k].className = k < Math.min(n, 3) ? "on" : "";
+    el("podval").style.display = n === 4 ? "none" : "block";
+    window.scrollTo(0, 0);
+  }
+
+  el("next1").addEventListener("click", function () {
+    var srochno = v.povod && v.povod.srochno;
+    el("srochno").className = srochno ? "alarm show" : "alarm";
+    el("t2").textContent = srochno ? "Ближайшее время сегодня" : "Когда удобно прийти?";
+    el("h2").textContent = srochno
+      ? "Оставьте время — перезвоним в течение 15 минут и подтвердим."
+      : "Свободное время у детского врача.";
+    pokazat(2);
+  });
+  el("next2").addEventListener("click", function () { itog(); pokazat(3); });
+
+  var nazad = document.querySelectorAll("[data-back]");
+  for (var j = 0; j < nazad.length; j++) {
+    nazad[j].addEventListener("click", function () { pokazat(Number(this.getAttribute("data-back"))); });
+  }
+
+  function itog() {
+    var d = DEN[v.den];
+    el("itog").innerHTML =
+      '<div class="row"><span>Ребёнок</span><b></b></div>' +
+      '<div class="row"><span>Повод</span><b></b></div>' +
+      '<div class="row"><span>Когда</span><b></b></div>';
+    var b = el("itog").querySelectorAll(".row b");
+    b[0].textContent = v.vozrast.name + " лет";
+    b[1].textContent = v.povod.name;
+    b[2].textContent = d.label + ", " + d.day + " в " + v.slot;
+  }
+
+  function telOk(x) { return (x || "").replace(/\D/g, "").length >= 10; }
+  el("tel").addEventListener("blur", function () {
+    var d = (this.value || "").replace(/\D/g, "");
+    if (d.length === 11 && (d[0] === "7" || d[0] === "8")) {
+      this.value = "+7 (" + d.substr(1, 3) + ") " + d.substr(4, 3) + "-" + d.substr(7, 2) + "-" + d.substr(9, 2);
+    } else if (d.length === 10) {
+      this.value = "+7 (" + d.substr(0, 3) + ") " + d.substr(3, 3) + "-" + d.substr(6, 2) + "-" + d.substr(8, 2);
+    }
+  });
+  el("imya").addEventListener("input", function () {
+    if (this.value.trim()) { el("e-imya").className = "err"; this.className = ""; }
+  });
+  el("tel").addEventListener("input", function () {
+    if (telOk(this.value)) { el("e-tel").className = "err"; this.className = ""; }
+  });
+
+  el("zapis").addEventListener("click", function () {
+    var imya = el("imya").value.trim();
+    var tel = el("tel").value.trim();
+    var ploh = false;
+    if (!imya) { el("e-imya").className = "err show"; el("imya").className = "bad"; ploh = true; }
+    if (!telOk(tel)) { el("e-tel").className = "err show"; el("tel").className = "bad"; ploh = true; }
+    if (ploh) { var f = document.querySelector(".bad"); if (f) f.focus(); return; }
+
+    var d = DEN[v.den];
+    var nomer = "З-" + (2000 + Math.floor(Math.random() * 8000));
+    var srochno = v.povod.srochno;
+
+    var dannye = {
+      nomer: nomer, imya: imya, tel: tel,
+      vozrast: v.vozrast.name, povod: v.povod.name,
+      kogda: d.label + ", " + d.day + " в " + v.slot, srochno: !!srochno
+    };
+
+    this.disabled = true;
+    this.textContent = "Записываем…";
+
+    var gotovo = function () {
+      el("zagl").textContent = srochno ? "Записали, ждите звонка" : "Записали";
+      el("nomer").textContent = "Заявка " + nomer;
+      el("kogda").textContent = v.povod.name + " · " + d.label + ", " + d.day + " в " + v.slot;
+      el("soobshenie").textContent =
+        (srochno ? "Приняли срочную заявку, " : "Записали, ") + imya + "!\n\n" +
+        "Ребёнок: " + v.vozrast.name + " лет\n" +
+        "Повод: " + v.povod.name + "\n" +
+        "Время: " + d.label + ", " + d.day + " в " + v.slot + "\n\n" +
+        (srochno
+          ? "Администратор перезвонит в течение 15 минут. Если станет хуже — звоните сами: +7 (3452) 59-44-59."
+          : "Первый визит — знакомство: полечим только то, на что вы согласны. Возьмите любимую игрушку ребёнка.");
+      pokazat(4);
+    };
+
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(dannye)); gotovo(); return; } catch (e) {}
+    }
+    gotovo();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Запись на груминг — Лапа</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --accent:#7c5cd6; --accent-2:#5f42b4; --accent-soft:#f1ecfd;
+    --bg:#faf8fe; --card:#ffffff; --text:#1b1626; --muted:#847c94;
+    --line:#e9e2f8;
+  }
+  html.dark{
+    --accent:#a58bf0; --accent-2:#7c5cd6; --accent-soft:#211b33;
+    --bg:#100e18; --card:#191523; --text:#f2edfb; --muted:#9a92ac;
+    --line:#292236;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not(.light){
+      --accent:#a58bf0; --accent-2:#7c5cd6; --accent-soft:#211b33;
+      --bg:#100e18; --card:#191523; --text:#f2edfb; --muted:#9a92ac;
+      --line:#292236;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);min-height:100vh;
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .app{max-width:520px;margin:0 auto}
+
+  header{
+    padding:26px 20px 30px;text-align:center;color:#fff;
+    background:linear-gradient(140deg,var(--accent) 0%,var(--accent-2) 100%);
+    border-radius:0 0 26px 26px;
+  }
+  header .mark{
+    width:56px;height:56px;margin:0 auto 12px;border-radius:18px;
+    background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:27px;
+  }
+  header h1{margin:0 0 5px;font-size:20px;letter-spacing:.4px;font-weight:800}
+  header .sub{font-size:13.5px;opacity:.92}
+
+  .steps{
+    display:flex;gap:6px;margin:-14px 18px 0;background:var(--card);border-radius:14px;
+    padding:11px 12px;box-shadow:0 6px 20px rgba(70,40,140,.10);position:relative;z-index:2;
+  }
+  .steps i{flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .25s}
+  .steps i.on{background:var(--accent)}
+
+  main{padding:18px 16px 0}
+  .screen{display:none;animation:in .25s ease both}
+  .screen.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h2.t{margin:0 0 3px;font-size:17px;font-weight:750}
+  p.hint{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+
+  .card{
+    background:var(--card);border-radius:16px;padding:6px;
+    box-shadow:0 2px 12px rgba(70,40,140,.07);margin-bottom:14px;
+  }
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;
+    border:0;border-radius:12px;padding:13px 12px;cursor:pointer;font:inherit;color:inherit;
+    transition:background .15s;
+  }
+  .opt+.opt{border-top:1px solid var(--line);border-radius:0}
+  .opt.on{background:var(--accent-soft)}
+  .opt .ic{font-size:22px;flex:none;width:28px;text-align:center}
+  .opt .body{flex:1;min-width:0}
+  .opt .name{display:block;font-size:15px;font-weight:600}
+  .opt .meta{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .opt .price{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .opt .dot{
+    width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--line);
+    display:grid;place-items:center;
+  }
+  .opt.on .dot{border-color:var(--accent)}
+  .opt.on .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+
+  /* кто питомец */
+  .kto{display:flex;gap:10px;margin-bottom:16px}
+  .kto button{
+    flex:1;padding:18px 8px;border-radius:16px;border:1px solid var(--line);
+    background:var(--card);font:inherit;color:var(--text);cursor:pointer;transition:all .15s;
+  }
+  .kto button .em{font-size:30px;display:block;line-height:1.2}
+  .kto button .nm{font-size:14px;font-weight:600;margin-top:4px;display:block}
+  .kto button.on{background:var(--accent-soft);border-color:var(--accent)}
+
+  /* размер */
+  .size{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .size button{
+    padding:13px 4px;border-radius:13px;border:1px solid var(--line);background:var(--card);
+    font:inherit;color:var(--text);cursor:pointer;transition:all .15s;text-align:center;
+  }
+  .size button b{display:block;font-size:16px;font-weight:800}
+  .size button span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.25}
+  .size button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .size button.on span{color:rgba(255,255,255,.85)}
+
+  .days{display:flex;gap:8px;margin-bottom:12px}
+  .day{
+    flex:1;padding:9px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    font:inherit;cursor:pointer;text-align:center;transition:all .15s;color:var(--text);
+  }
+  .day b{display:block;font-size:14px;font-weight:700}
+  .day span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .day.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .day.on span{color:rgba(255,255,255,.85)}
+
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .slot{
+    padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    font:inherit;font-size:15px;font-weight:600;cursor:pointer;color:var(--text);transition:all .15s;
+  }
+  .slot.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .slot.busy{color:var(--muted);background:transparent;border-style:dashed;cursor:not-allowed;font-weight:400;font-size:12.5px}
+
+  label.f{display:block;font-size:13.5px;font-weight:600;margin:0 0 6px 2px}
+  input[type=text],input[type=tel]{
+    width:100%;padding:13px 14px;font-size:16px;font-family:inherit;color:var(--text);
+    background:var(--card);border:1px solid var(--line);border-radius:12px;outline:none;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.bad{border-color:#d33b3b}
+  .field{margin-bottom:13px}
+  .err{color:#d33b3b;font-size:12.5px;margin-top:5px;display:none}
+  .err.show{display:block}
+
+  .summary{background:var(--accent-soft);border-radius:14px;padding:14px 16px;margin:16px 0 14px}
+  .summary .row{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:3px 0}
+  .summary .row span:first-child{color:var(--muted)}
+  .summary .row b{font-weight:650;text-align:right}
+  .summary .total{
+    display:flex;justify-content:space-between;margin-top:9px;padding-top:9px;
+    border-top:1px solid rgba(124,92,214,.25);font-size:17px;font-weight:800;
+  }
+
+  .btn{
+    width:100%;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;
+    background:var(--accent);border:0;border-radius:14px;cursor:pointer;transition:background .15s,transform .06s;
+  }
+  .btn:active{transform:scale(.99)}
+  .btn:disabled{background:var(--muted);cursor:default}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1}
+  .nav .btn.back{flex:0 0 auto;width:auto;padding:16px 22px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+  .done{text-align:center;padding:30px 8px 10px}
+  .done .tick{
+    width:74px;height:74px;margin:0 auto 16px;border-radius:50%;background:var(--accent-soft);
+    display:grid;place-items:center;font-size:36px;animation:pop .35s cubic-bezier(.2,1.4,.5,1) both;
+  }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{margin:0 0 6px;font-size:21px}
+  .done p{margin:4px 0;color:var(--muted);font-size:14.5px}
+  .done .num{font-size:15px;font-weight:700;color:var(--accent);margin:10px 0}
+
+  .chat{
+    margin:20px 0 0;background:var(--card);border-radius:16px;padding:14px;
+    box-shadow:0 2px 12px rgba(70,40,140,.07);text-align:left;
+  }
+  .chat .who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .bubble{background:var(--accent-soft);border-radius:14px 14px 14px 4px;padding:11px 13px;font-size:14px;line-height:1.5;white-space:pre-line}
+
+  .foot{text-align:center;font-size:12px;color:var(--muted);padding:18px 22px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="mark">🐾</div>
+    <h1>ЛАПА</h1>
+    <div class="sub">груминг-салон · запись без звонков</div>
+  </header>
+
+  <div class="steps"><i class="on"></i><i></i><i></i></div>
+
+  <main>
+
+    <!-- ШАГ 1 -->
+    <section class="screen on" id="s1">
+      <h2 class="t">Кто у нас сегодня?</h2>
+      <p class="hint">От размера зависит цена и время.</p>
+      <div class="kto" id="kto">
+        <button type="button" data-k="Кошка"><span class="em">🐱</span><span class="nm">Кошка</span></button>
+        <button type="button" data-k="Собака"><span class="em">🐶</span><span class="nm">Собака</span></button>
+      </div>
+
+      <label class="f">Размер</label>
+      <div class="size" id="razmer">
+        <button type="button" data-s="s"><b>S</b><span>до 5 кг</span></button>
+        <button type="button" data-s="m"><b>M</b><span>5–15 кг</span></button>
+        <button type="button" data-s="l"><b>L</b><span>15–30 кг</span></button>
+        <button type="button" data-s="xl"><b>XL</b><span>30+ кг</span></button>
+      </div>
+
+      <h2 class="t">Что делаем?</h2>
+      <p class="hint">Можно выбрать несколько.</p>
+      <div class="card" id="uslugi"></div>
+      <div class="summary" id="bystro">
+        <div class="row"><span>Предварительно</span><b id="b-cena">—</b></div>
+        <div class="row"><span>Займёт</span><b id="b-vremya">—</b></div>
+      </div>
+      <button class="btn" id="next1" disabled>Дальше</button>
+    </section>
+
+    <!-- ШАГ 2 -->
+    <section class="screen" id="s2">
+      <h2 class="t">Когда удобно?</h2>
+      <p class="hint">Мастер подтвердит время в чате.</p>
+      <div class="days" id="dni"></div>
+      <div class="slots" id="sloty"></div>
+      <div class="nav">
+        <button class="btn back" data-back="1">←</button>
+        <button class="btn" id="next2" disabled>Дальше</button>
+      </div>
+    </section>
+
+    <!-- ШАГ 3 -->
+    <section class="screen" id="s3">
+      <h2 class="t">Как вас записать?</h2>
+      <p class="hint">Напомним за день до визита.</p>
+      <div class="field">
+        <label class="f" for="imya">Имя</label>
+        <input type="text" id="imya" placeholder="Как к вам обращаться" autocomplete="name">
+        <div class="err" id="e-imya">Напишите имя</div>
+      </div>
+      <div class="field">
+        <label class="f" for="tel">Телефон</label>
+        <input type="tel" id="tel" placeholder="+7 (___) ___-__-__" inputmode="tel" autocomplete="tel">
+        <div class="err" id="e-tel">Нужен телефон для подтверждения</div>
+      </div>
+      <div class="summary" id="itog"></div>
+      <button class="btn" id="zapis">Записаться</button>
+      <div class="nav"><button class="btn back" data-back="2">←</button></div>
+    </section>
+
+    <!-- ГОТОВО -->
+    <section class="screen" id="s4">
+      <div class="done">
+        <div class="tick">✓</div>
+        <h2>Записали</h2>
+        <div class="num" id="nomer">—</div>
+        <p id="kogda">—</p>
+        <p>Мастер напишет в чат и подтвердит время.</p>
+      </div>
+      <div class="chat">
+        <div class="who">так это выглядит в чате с ботом</div>
+        <div class="bubble" id="soobshenie">—</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="foot" id="podval">
+    Цена предварительная: мастер уточнит на месте, если питомец непоседлив.
+    Нажимая кнопку, вы соглашаетесь на обработку данных.
+  </div>
+</div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    if (tg.colorScheme === "dark") document.documentElement.classList.add("dark");
+    if (tg.colorScheme === "light") document.documentElement.classList.add("light");
+  }
+  function el(id) { return document.getElementById(id); }
+  function tap() {
+    if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+  }
+  function dengi(n) { return n.toLocaleString("ru-RU") + " ₽"; }
+
+  /* Цена и время: базовая по размеру, услуги прибавляются. */
+  var BAZA = {
+    s:  { cena: 2200, min: 60 },
+    m:  { cena: 3000, min: 80 },
+    l:  { cena: 4000, min: 110 },
+    xl: { cena: 5200, min: 140 }
+  };
+
+  var USLUGI = [
+    { id: "strizhka", name: "Стрижка", meta: "под машинку или ножницами", ic: "✂️", plus: 0,    min: 0 },
+    { id: "kupanie",  name: "Купание и сушка", meta: "шампунь по типу шерсти", ic: "🛁", plus: 600,  min: 20 },
+    { id: "kogti",    name: "Когти", meta: "стрижка и шлифовка", ic: "💅", plus: 400,  min: 10 },
+    { id: "ushi",     name: "Уши", meta: "чистка и обработка", ic: "👂", plus: 300,  min: 10 },
+    { id: "lin",      name: "Экспресс-линька", meta: "вычёсывание подшёрстка", ic: "🌬️", plus: 900, min: 25 }
+  ];
+
+  var DEN = [
+    { label: "сегодня", day: "пт", slots: ["10:00", "12:00", null, "15:30", "17:00"] },
+    { label: "завтра",  day: "сб", slots: [null, "11:00", "13:00", "16:00", null] },
+    { label: "послезавтра", day: "вс", slots: ["09:30", null, "14:00", "16:30", "18:00"] }
+  ];
+
+  var v = { kto: "", razmer: "", uslugi: [], den: 0, slot: null };
+
+  el("kto").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    tap();
+    v.kto = b.getAttribute("data-k");
+    var vse = this.querySelectorAll("button");
+    for (var i = 0; i < vse.length; i++) vse[i].className = vse[i] === b ? "on" : "";
+    pereschitat();
+  });
+
+  el("razmer").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    tap();
+    v.razmer = b.getAttribute("data-s");
+    var vse = this.querySelectorAll("button");
+    for (var i = 0; i < vse.length; i++) vse[i].className = vse[i] === b ? "on" : "";
+    pereschitat();
+  });
+
+  var uslugiBox = el("uslugi");
+  USLUGI.forEach(function (u) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "opt";
+    b.innerHTML = '<span class="ic"></span><span class="body"><span class="name"></span><span class="meta"></span></span><span class="price"></span>';
+    b.querySelector(".ic").textContent = u.ic;
+    b.querySelector(".name").textContent = u.name;
+    b.querySelector(".meta").textContent = u.meta;
+    b.querySelector(".price").textContent = u.plus ? "+" + dengi(u.plus) : "включено";
+    b.addEventListener("click", function () {
+      tap();
+      var i = v.uslugi.indexOf(u.id);
+      if (i >= 0) { v.uslugi.splice(i, 1); b.className = "opt"; }
+      else { v.uslugi.push(u.id); b.className = "opt on"; }
+      pereschitat();
+    });
+    uslugiBox.appendChild(b);
+  });
+
+  function cena() {
+    if (!v.razmer) return 0;
+    var s = BAZA[v.razmer].cena;
+    v.uslugi.forEach(function (id) {
+      for (var i = 0; i < USLUGI.length; i++) if (USLUGI[i].id === id) s += USLUGI[i].plus;
+    });
+    return s;
+  }
+
+  function minut() {
+    if (!v.razmer) return 0;
+    var m = BAZA[v.razmer].min;
+    v.uslugi.forEach(function (id) {
+      for (var i = 0; i < USLUGI.length; i++) if (USLUGI[i].id === id) m += USLUGI[i].min;
+    });
+    return m;
+  }
+
+  function vremya(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    if (!h) return m + " мин";
+    return h + " ч" + (m ? " " + m + " мин" : "");
+  }
+
+  function pereschitat() {
+    var c = cena(), m = minut();
+    el("b-cena").textContent = c ? dengi(c) : "—";
+    el("b-vremya").textContent = m ? vremya(m) : "—";
+    el("next1").disabled = !(v.kto && v.razmer && v.uslugi.length);
+  }
+  pereschitat();
+
+  /* дни и время */
+  var dniBox = el("dni");
+  DEN.forEach(function (d, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "day" + (i === 0 ? " on" : "");
+    b.innerHTML = "<b></b><span></span>";
+    b.querySelector("b").textContent = d.label;
+    b.querySelector("span").textContent = d.day;
+    b.addEventListener("click", function () {
+      tap(); v.den = i; v.slot = null;
+      var vse = dniBox.querySelectorAll(".day");
+      for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "day on" : "day";
+      sloty();
+    });
+    dniBox.appendChild(b);
+  });
+
+  function sloty() {
+    var box = el("sloty");
+    box.innerHTML = "";
+    el("next2").disabled = true;
+    DEN[v.den].slots.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button";
+      if (!s) { b.className = "slot busy"; b.textContent = "занято"; b.disabled = true; }
+      else {
+        b.className = "slot"; b.textContent = s;
+        b.addEventListener("click", function () {
+          tap(); v.slot = s;
+          var vse = box.querySelectorAll(".slot");
+          for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "slot on" : "slot";
+          el("next2").disabled = false;
+        });
+      }
+      box.appendChild(b);
+    });
+  }
+  sloty();
+
+  function pokazat(n) {
+    var ekrany = document.querySelectorAll(".screen");
+    for (var i = 0; i < ekrany.length; i++) ekrany[i].className = "screen";
+    el("s" + n).className = "screen on";
+    var polosy = document.querySelectorAll(".steps i");
+    for (var k = 0; k < polosy.length; k++) polosy[k].className = k < Math.min(n, 3) ? "on" : "";
+    el("podval").style.display = n === 4 ? "none" : "block";
+    window.scrollTo(0, 0);
+  }
+
+  el("next1").addEventListener("click", function () { pokazat(2); });
+  el("next2").addEventListener("click", function () { itog(); pokazat(3); });
+
+  var nazad = document.querySelectorAll("[data-back]");
+  for (var j = 0; j < nazad.length; j++) {
+    nazad[j].addEventListener("click", function () { pokazat(Number(this.getAttribute("data-back"))); });
+  }
+
+  function spisokUslug() {
+    return v.uslugi.map(function (id) {
+      for (var i = 0; i < USLUGI.length; i++) if (USLUGI[i].id === id) return USLUGI[i].name;
+      return "";
+    }).filter(Boolean);
+  }
+
+  function itog() {
+    var d = DEN[v.den];
+    el("itog").innerHTML =
+      '<div class="row"><span>Питомец</span><b></b></div>' +
+      '<div class="row"><span>Услуги</span><b></b></div>' +
+      '<div class="row"><span>Когда</span><b></b></div>' +
+      '<div class="row"><span>Займёт</span><b></b></div>' +
+      '<div class="total"><span>Итого</span><span></span></div>';
+    var b = el("itog").querySelectorAll(".row b");
+    b[0].textContent = v.kto + " · " + v.razmer.toUpperCase();
+    b[1].textContent = spisokUslug().join(", ");
+    b[2].textContent = d.label + ", " + d.day + " в " + v.slot;
+    b[3].textContent = vremya(minut());
+    el("itog").querySelector(".total span:last-child").textContent = dengi(cena());
+  }
+
+  function telOk(x) { return (x || "").replace(/\D/g, "").length >= 10; }
+  el("tel").addEventListener("blur", function () {
+    var d = (this.value || "").replace(/\D/g, "");
+    if (d.length === 11 && (d[0] === "7" || d[0] === "8")) {
+      this.value = "+7 (" + d.substr(1, 3) + ") " + d.substr(4, 3) + "-" + d.substr(7, 2) + "-" + d.substr(9, 2);
+    } else if (d.length === 10) {
+      this.value = "+7 (" + d.substr(0, 3) + ") " + d.substr(3, 3) + "-" + d.substr(6, 2) + "-" + d.substr(8, 2);
+    }
+  });
+  el("imya").addEventListener("input", function () {
+    if (this.value.trim()) { el("e-imya").className = "err"; this.className = ""; }
+  });
+  el("tel").addEventListener("input", function () {
+    if (telOk(this.value)) { el("e-tel").className = "err"; this.className = ""; }
+  });
+
+  el("zapis").addEventListener("click", function () {
+    var imya = el("imya").value.trim();
+    var tel = el("tel").value.trim();
+    var ploh = false;
+    if (!imya) { el("e-imya").className = "err show"; el("imya").className = "bad"; ploh = true; }
+    if (!telOk(tel)) { el("e-tel").className = "err show"; el("tel").className = "bad"; ploh = true; }
+    if (ploh) { var f = document.querySelector(".bad"); if (f) f.focus(); return; }
+
+    var d = DEN[v.den];
+    var nomer = "Л-" + (4000 + Math.floor(Math.random() * 5000));
+    var usl = spisokUslug().join(", ");
+
+    var dannye = {
+      nomer: nomer, imya: imya, tel: tel, kto: v.kto, razmer: v.razmer.toUpperCase(),
+      uslugi: usl, kogda: d.label + ", " + d.day + " в " + v.slot,
+      summa: cena(), minut: minut()
+    };
+
+    this.disabled = true;
+    this.textContent = "Записываем…";
+
+    var gotovo = function () {
+      el("nomer").textContent = "Запись " + nomer;
+      el("kogda").textContent = v.kto + " · " + usl + " · " + d.label + ", " + d.day + " в " + v.slot;
+      el("soobshenie").textContent =
+        "Записали, " + imya + "!\n\n" +
+        v.kto + ", размер " + v.razmer.toUpperCase() + "\n" +
+        usl + "\n" +
+        d.label + ", " + d.day + " в " + v.slot + "\n" +
+        dengi(cena()) + " · " + vremya(minut()) + "\n\n" +
+        "Возьмите поводок и любимое лакомство — так спокойнее. За день до визита напомню.";
+      pokazat(4);
+    };
+
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(dannye)); gotovo(); return; } catch (e) {}
+    }
+    gotovo();
+  });
+})();
+</script>
+</body>
+</html>

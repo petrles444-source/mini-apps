@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Анкета — Сушка Тела | Shredded body</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --accent:#f2622a; --accent-2:#d84a15; --accent-soft:#fdf0ea;
+    --bg:#faf8f6; --card:#ffffff; --text:#1b1a19; --muted:#8a8078;
+    --line:#eee6e0;
+  }
+  html.dark{
+    --accent:#ff7a45; --accent-2:#f2622a; --accent-soft:#241a15;
+    --bg:#121110; --card:#1c1a18; --text:#f4efea; --muted:#a0968e;
+    --line:#2b2622;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not(.light){
+      --accent:#ff7a45; --accent-2:#f2622a; --accent-soft:#241a15;
+      --bg:#121110; --card:#1c1a18; --text:#f4efea; --muted:#a0968e;
+      --line:#2b2622;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);min-height:100vh;
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .app{max-width:520px;margin:0 auto}
+
+  header{
+    padding:26px 20px 32px;color:#fff;
+    background:linear-gradient(150deg,#232227 0%,#141316 100%);
+    border-radius:0 0 26px 26px;
+  }
+  header .brand{
+    display:flex;align-items:center;gap:12px;justify-content:center;
+  }
+  header .av{
+    width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:linear-gradient(140deg,#3a3a42,#1b1b20);font-size:21px;
+    border:1px solid rgba(255,255,255,.14);
+  }
+  header h1{margin:0;font-size:17px;font-weight:800;letter-spacing:.2px;text-align:left;line-height:1.25}
+  header h1 span{color:var(--accent);font-weight:700;display:block;font-size:13.5px;letter-spacing:.3px}
+  header .sub{
+    margin:16px auto 0;max-width:400px;font-size:13.5px;line-height:1.55;
+    color:rgba(255,255,255,.72);text-align:center;
+  }
+
+  .steps{
+    display:flex;gap:6px;margin:-15px 18px 0;background:var(--card);border-radius:14px;
+    padding:11px 12px;box-shadow:0 6px 20px rgba(60,40,20,.10);position:relative;z-index:2;
+  }
+  .steps i{flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .25s}
+  .steps i.on{background:var(--accent)}
+
+  main{padding:18px 16px 0}
+  .screen{display:none;animation:in .25s ease both}
+  .screen.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h2.t{margin:0 0 3px;font-size:17px;font-weight:750}
+  p.hint{margin:0 0 16px;font-size:13px;color:var(--muted)}
+
+  .q{margin-bottom:18px}
+  label.f{display:block;font-size:14px;font-weight:600;margin:0 0 7px;line-height:1.4}
+  label.f .star{color:var(--accent)}
+  label.f .opt{font-weight:400;color:var(--muted);font-size:12px}
+  input[type=text],textarea{
+    width:100%;padding:13px 14px;font-size:16px;font-family:inherit;color:var(--text);
+    background:var(--card);border:1px solid var(--line);border-radius:12px;outline:none;
+    transition:border-color .15s,box-shadow .15s;line-height:1.45;
+  }
+  textarea{min-height:86px;resize:vertical}
+  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.bad{border-color:#d33b3b}
+  .err{color:#d33b3b;font-size:12.5px;margin-top:5px;display:none}
+  .err.show{display:block}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+  .chip{
+    font:inherit;font-size:13.5px;padding:8px 13px;border-radius:999px;border:1px solid var(--line);
+    background:var(--card);color:var(--text);cursor:pointer;transition:all .15s;
+  }
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .btn{
+    width:100%;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;
+    background:var(--accent);border:0;border-radius:14px;cursor:pointer;
+    transition:background .15s,transform .06s;
+  }
+  .btn:active{transform:scale(.99)}
+  .btn:disabled{background:var(--muted);cursor:default}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1}
+  .nav .btn.back{flex:0 0 auto;width:auto;padding:16px 22px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+  .review{background:var(--card);border-radius:16px;padding:6px 16px;margin-bottom:16px;box-shadow:0 2px 12px rgba(60,40,20,.06)}
+  .review .item{padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.45}
+  .review .item:last-child{border-bottom:0}
+  .review .item .k{display:block;font-size:11.5px;color:var(--muted);margin-bottom:2px}
+  .review .item .v{white-space:pre-line}
+
+  .done{text-align:center;padding:30px 8px 10px}
+  .done .tick{
+    width:74px;height:74px;margin:0 auto 16px;border-radius:50%;background:var(--accent-soft);
+    display:grid;place-items:center;font-size:36px;animation:pop .35s cubic-bezier(.2,1.4,.5,1) both;
+  }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{margin:0 0 6px;font-size:21px}
+  .done p{margin:4px 0;color:var(--muted);font-size:14.5px}
+
+  .chat{
+    margin:20px 0 0;background:var(--card);border-radius:16px;padding:14px;
+    box-shadow:0 2px 12px rgba(60,40,20,.06);text-align:left;
+  }
+  .chat .who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .bubble{background:var(--accent-soft);border-radius:14px 14px 14px 4px;padding:11px 13px;font-size:14px;line-height:1.5;white-space:pre-line}
+
+  .foot{text-align:center;font-size:12px;color:var(--muted);padding:18px 22px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="av">🔥</div>
+      <h1>СУШКА ТЕЛА<span>| Shredded body</span></h1>
+    </div>
+    <div class="sub">Заполните, пожалуйста, анкету — это займёт три минуты.
+      Все вопросы, кроме первого, можно пропустить.</div>
+  </header>
+
+  <div class="steps"><i class="on"></i><i></i><i></i><i></i></div>
+
+  <main>
+
+    <!-- ШАГ 1 -->
+    <section class="screen on" id="s1">
+      <h2 class="t">Начнём с главного</h2>
+      <p class="hint">Дальше — три коротких блока.</p>
+
+      <div class="q">
+        <label class="f" for="imya">Как мне к вам обращаться? <span class="star">*</span></label>
+        <input type="text" id="imya" placeholder="Введите ответ" autocomplete="name">
+        <div class="err" id="e-imya">Напишите, пожалуйста, имя</div>
+      </div>
+
+      <div class="q">
+        <label class="f" for="cel">Ваша конечная цель <span class="opt">необязательно</span></label>
+        <input type="text" id="cel" placeholder="Например: потеря веса, набор мышечной массы, сушка">
+      </div>
+
+      <div class="q">
+        <label class="f">Ваш уровень подготовки и опыт в тренировках <span class="opt">необязательно</span></label>
+        <div class="chips" id="uroven">
+          <button type="button" class="chip" data-v="Новичок (меньше года системных тренировок)">Новичок</button>
+          <button type="button" class="chip" data-v="Средний уровень (1–3 года)">Средний</button>
+          <button type="button" class="chip" data-v="Продвинутый (3+ года)">Продвинутый</button>
+        </div>
+      </div>
+
+      <button class="btn" id="next1">Дальше</button>
+    </section>
+
+    <!-- ШАГ 2 -->
+    <section class="screen" id="s2">
+      <h2 class="t">Здоровье и питание</h2>
+      <p class="hint">Можно пропустить любой вопрос.</p>
+
+      <div class="q">
+        <label class="f" for="med">Есть ли какие-либо медицинские ограничения или заболевания, которые могут повлиять на вашу тренировочную программу или питание?</label>
+        <textarea id="med" placeholder="Введите ответ"></textarea>
+      </div>
+
+      <div class="q">
+        <label class="f" for="pish">Каковы ваши пищевые предпочтения и ограничения (например, вегетарианство, аллергии)?</label>
+        <input type="text" id="pish" placeholder="Введите ответ">
+      </div>
+
+      <div class="q">
+        <label class="f" for="zhkt">Есть ли у вас какие-либо особенности в области пищеварения или метаболизма, о которых стоит знать?</label>
+        <textarea id="zhkt" placeholder="Ваш ответ"></textarea>
+      </div>
+
+      <div class="nav">
+        <button class="btn back" data-back="1">←</button>
+        <button class="btn" id="next2">Дальше</button>
+      </div>
+    </section>
+
+    <!-- ШАГ 3 -->
+    <section class="screen" id="s3">
+      <h2 class="t">Опыт</h2>
+      <p class="hint">Чем честнее — тем точнее программа.</p>
+
+      <div class="q">
+        <label class="f" for="diety">Был ли опыт каких-либо диет? Если да, то каких, как долго, какой результат был достигнут?</label>
+        <textarea id="diety" placeholder="Ваш ответ"></textarea>
+      </div>
+
+      <div class="q">
+        <label class="f" for="ves">Какие были изменение веса тела за год?</label>
+        <input type="text" id="ves" placeholder="Введите ответ">
+      </div>
+
+      <div class="q">
+        <label class="f" for="tren">Занимаетесь ли вы тренировками сейчас? Если да — укажите частоту (раз в неделю). Если нет — готовы ли вы начать и с какой периодичностью?</label>
+        <textarea id="tren" placeholder="Ваш ответ"></textarea>
+      </div>
+
+      <div class="nav">
+        <button class="btn back" data-back="2">←</button>
+        <button class="btn" id="next3">Дальше</button>
+      </div>
+    </section>
+
+    <!-- ШАГ 4 -->
+    <section class="screen" id="s4">
+      <h2 class="t">Режим</h2>
+      <p class="hint">Последний блок.</p>
+
+      <div class="q">
+        <label class="f" for="rabota">Тип вашей работы (сидячая, разъездная) и график работы?</label>
+        <input type="text" id="rabota" placeholder="Введите ответ">
+      </div>
+
+      <div class="q">
+        <label class="f" for="edy">Сколько у вас приемов пищи в течение дня?</label>
+        <input type="text" id="edy" placeholder="Введите ответ" inputmode="numeric">
+      </div>
+
+      <div class="q">
+        <label class="f" for="son">Сколько часов вы спите в сутки?</label>
+        <input type="text" id="son" placeholder="Введите ответ" inputmode="numeric">
+      </div>
+
+      <div class="q">
+        <label class="f" for="voda">Сколько воды выпиваете в течение дня?</label>
+        <input type="text" id="voda" placeholder="Введите ответ">
+      </div>
+
+      <div class="nav">
+        <button class="btn back" data-back="3">←</button>
+        <button class="btn" id="next4">Проверить</button>
+      </div>
+    </section>
+
+    <!-- ПРОВЕРКА -->
+    <section class="screen" id="s5">
+      <h2 class="t">Всё верно?</h2>
+      <p class="hint">Можно вернуться и поправить любой ответ.</p>
+      <div class="review" id="prosmotr"></div>
+      <button class="btn" id="otpravit">Отправить тренеру</button>
+      <div class="nav"><button class="btn back" data-back="4">←</button></div>
+    </section>
+
+    <!-- ГОТОВО -->
+    <section class="screen" id="s6">
+      <div class="done">
+        <div class="tick">✓</div>
+        <h2>Анкета отправлена</h2>
+        <p id="kto">—</p>
+        <p>Тренер посмотрит ответы и напишет вам в этом чате.</p>
+      </div>
+      <div class="chat">
+        <div class="who">так это выглядит в чате с ботом</div>
+        <div class="bubble" id="soobshenie">—</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="foot" id="podval">
+    Нажимая «Отправить тренеру», вы соглашаетесь на обработку указанных данных.
+  </div>
+</div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    if (tg.colorScheme === "dark") document.documentElement.classList.add("dark");
+    if (tg.colorScheme === "light") document.documentElement.classList.add("light");
+  }
+  function el(id) { return document.getElementById(id); }
+  function tap() {
+    if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+  }
+
+  /* Вопросы анкеты: ключ, подпись для итогового экрана, поле ввода. */
+  var VOPROSY = [
+    ["imya",  "Как обращаться"],
+    ["cel",   "Конечная цель"],
+    ["uroven","Уровень подготовки"],
+    ["med",   "Медицинские ограничения"],
+    ["pish",  "Пищевые предпочтения"],
+    ["zhkt",  "Пищеварение и метаболизм"],
+    ["diety", "Опыт диет"],
+    ["ves",   "Изменение веса за год"],
+    ["tren",  "Тренировки сейчас"],
+    ["rabota","Работа и график"],
+    ["edy",   "Приёмов пищи в день"],
+    ["son",   "Сон в сутки"],
+    ["voda",  "Вода в день"]
+  ];
+
+  var uroven = "";
+  var chipy = el("uroven").querySelectorAll(".chip");
+  for (var i = 0; i < chipy.length; i++) {
+    chipy[i].addEventListener("click", function () {
+      tap();
+      var uzhe = this.className.indexOf("on") >= 0;
+      for (var j = 0; j < chipy.length; j++) chipy[j].className = "chip";
+      if (uzhe) { uroven = ""; return; }
+      this.className = "chip on";
+      uroven = this.getAttribute("data-v");
+    });
+  }
+
+  function znachenie(klyuch) {
+    if (klyuch === "uroven") return uroven;
+    var p = el(klyuch);
+    return p ? p.value.trim() : "";
+  }
+
+  function pokazat(n) {
+    var ekrany = document.querySelectorAll(".screen");
+    for (var i = 0; i < ekrany.length; i++) ekrany[i].className = "screen";
+    el("s" + n).className = "screen on";
+    var polosy = document.querySelectorAll(".steps i");
+    for (var k = 0; k < polosy.length; k++) polosy[k].className = k < Math.min(n, 4) ? "on" : "";
+    el("podval").style.display = n === 6 ? "none" : "block";
+    window.scrollTo(0, 0);
+  }
+
+  el("next1").addEventListener("click", function () {
+    if (!el("imya").value.trim()) {
+      el("e-imya").className = "err show";
+      el("imya").className = "bad";
+      el("imya").focus();
+      return;
+    }
+    pokazat(2);
+  });
+  el("imya").addEventListener("input", function () {
+    if (this.value.trim()) { el("e-imya").className = "err"; this.className = ""; }
+  });
+
+  el("next2").addEventListener("click", function () { pokazat(3); });
+  el("next3").addEventListener("click", function () { pokazat(4); });
+  el("next4").addEventListener("click", function () { prosmotr(); pokazat(5); });
+
+  var nazad = document.querySelectorAll("[data-back]");
+  for (var j = 0; j < nazad.length; j++) {
+    nazad[j].addEventListener("click", function () { pokazat(Number(this.getAttribute("data-back"))); });
+  }
+
+  function prosmotr() {
+    var box = el("prosmotr");
+    box.innerHTML = "";
+    VOPROSY.forEach(function (p) {
+      var z = znachenie(p[0]);
+      if (!z) return;
+      var d = document.createElement("div");
+      d.className = "item";
+      var k = document.createElement("span");
+      k.className = "k";
+      k.textContent = p[1];
+      var v = document.createElement("span");
+      v.className = "v";
+      v.textContent = z;
+      d.appendChild(k);
+      d.appendChild(v);
+      box.appendChild(d);
+    });
+  }
+
+  el("otpravit").addEventListener("click", function () {
+    var dannye = {};
+    VOPROSY.forEach(function (p) { dannye[p[0]] = znachenie(p[0]); });
+
+    this.disabled = true;
+    this.textContent = "Отправляем…";
+
+    var imya = dannye.imya;
+    var zapolneno = VOPROSY.filter(function (p) { return znachenie(p[0]); }).length;
+
+    var gotovo = function () {
+      el("kto").textContent = imya + ", спасибо — ответов " + zapolneno + " из " + VOPROSY.length;
+      el("soobshenie").textContent =
+        "Спасибо, " + imya + "!\n\n" +
+        "Анкета у меня. Посмотрю ответы и напишу здесь в течение дня — " +
+        "задам то, что осталось непонятным.\n\n" +
+        "Если что-то захотите уточнить или дополнить — просто напишите в этот чат.";
+      pokazat(6);
+    };
+
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(dannye)); gotovo(); return; } catch (e) {}
+    }
+    gotovo();
+  });
+})();
+</script>
+</body>
+</html>

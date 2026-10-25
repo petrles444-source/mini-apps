@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Расчёт уборки — Свежо</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --accent:#159a94; --accent-2:#0f7a75; --accent-soft:#e7f6f5;
+    --bg:#f5faf9; --card:#ffffff; --text:#11201f; --muted:#758a88;
+    --line:#dbeeec;
+  }
+  html.dark{
+    --accent:#3fc0b8; --accent-2:#159a94; --accent-soft:#142523;
+    --bg:#0d1615; --card:#152120; --text:#e9f6f4; --muted:#8aa4a1;
+    --line:#22322f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not(.light){
+      --accent:#3fc0b8; --accent-2:#159a94; --accent-soft:#142523;
+      --bg:#0d1615; --card:#152120; --text:#e9f6f4; --muted:#8aa4a1;
+      --line:#22322f;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);min-height:100vh;
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .app{max-width:520px;margin:0 auto}
+
+  header{
+    padding:26px 20px 30px;text-align:center;color:#fff;
+    background:linear-gradient(140deg,var(--accent) 0%,var(--accent-2) 100%);
+    border-radius:0 0 26px 26px;
+  }
+  header .mark{
+    width:56px;height:56px;margin:0 auto 12px;border-radius:18px;
+    background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:27px;
+  }
+  header h1{margin:0 0 5px;font-size:20px;letter-spacing:.4px;font-weight:800}
+  header .sub{font-size:13.5px;opacity:.92}
+
+  .steps{
+    display:flex;gap:6px;margin:-14px 18px 0;background:var(--card);border-radius:14px;
+    padding:11px 12px;box-shadow:0 6px 20px rgba(10,70,65,.10);position:relative;z-index:2;
+  }
+  .steps i{flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .25s}
+  .steps i.on{background:var(--accent)}
+
+  main{padding:18px 16px 0}
+  .screen{display:none;animation:in .25s ease both}
+  .screen.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h2.t{margin:0 0 3px;font-size:17px;font-weight:750}
+  p.hint{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+
+  .card{
+    background:var(--card);border-radius:16px;padding:6px;
+    box-shadow:0 2px 12px rgba(10,70,65,.07);margin-bottom:14px;
+  }
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;
+    border:0;border-radius:12px;padding:13px 12px;cursor:pointer;font:inherit;color:inherit;
+    transition:background .15s;
+  }
+  .opt+.opt{border-top:1px solid var(--line);border-radius:0}
+  .opt.on{background:var(--accent-soft)}
+  .opt .ic{font-size:21px;flex:none;width:26px;text-align:center}
+  .opt .body{flex:1;min-width:0}
+  .opt .name{display:block;font-size:15px;font-weight:600}
+  .opt .meta{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .opt .price{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .opt .dot{
+    width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--line);
+    display:grid;place-items:center;
+  }
+  .opt.on .dot{border-color:var(--accent)}
+  .opt.on .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+
+  /* ползунок площади */
+  .ploshad{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px rgba(10,70,65,.07)}
+  .ploshad .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .ploshad .top b{font-size:22px;font-weight:800}
+  .ploshad .top span{font-size:13px;color:var(--muted)}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;
+    background:var(--line);outline:none;margin:8px 0 4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);
+    border:3px solid var(--card);box-shadow:0 2px 8px rgba(10,70,65,.3);cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid var(--card);
+    box-shadow:0 2px 8px rgba(10,70,65,.3);cursor:pointer;
+  }
+  .ploshad .scale{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+
+  /* доп. услуги */
+  .extra{
+    display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;
+    transition:all .15s;font-size:14.5px;
+  }
+  .extra .box{
+    width:22px;height:22px;flex:none;border-radius:7px;border:2px solid var(--line);
+    display:grid;place-items:center;font-size:13px;color:#fff;transition:all .15s;
+  }
+  .extra.on{border-color:var(--accent);background:var(--accent-soft)}
+  .extra.on .box{background:var(--accent);border-color:var(--accent)}
+  .extra .t{flex:1}
+  .extra .p{font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
+
+  .when{display:flex;gap:8px;margin-bottom:6px}
+  .when button{
+    flex:1;padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    font:inherit;font-size:13px;cursor:pointer;color:var(--text);transition:all .15s;line-height:1.3;
+  }
+  .when button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  label.f{display:block;font-size:13.5px;font-weight:600;margin:0 0 6px 2px}
+  input[type=text],input[type=tel]{
+    width:100%;padding:13px 14px;font-size:16px;font-family:inherit;color:var(--text);
+    background:var(--card);border:1px solid var(--line);border-radius:12px;outline:none;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.bad{border-color:#d33b3b}
+  .field{margin-bottom:13px}
+  .err{color:#d33b3b;font-size:12.5px;margin-top:5px;display:none}
+  .err.show{display:block}
+
+  .summary{background:var(--accent-soft);border-radius:14px;padding:14px 16px;margin:16px 0 14px}
+  .summary .row{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:3px 0}
+  .summary .row span:first-child{color:var(--muted)}
+  .summary .row b{font-weight:650;text-align:right}
+  .summary .total{
+    display:flex;justify-content:space-between;margin-top:9px;padding-top:9px;
+    border-top:1px solid rgba(21,154,148,.25);font-size:17px;font-weight:800;
+  }
+
+  .btn{
+    width:100%;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;
+    background:var(--accent);border:0;border-radius:14px;cursor:pointer;transition:background .15s,transform .06s;
+  }
+  .btn:active{transform:scale(.99)}
+  .btn:disabled{background:var(--muted);cursor:default}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1}
+  .nav .btn.back{flex:0 0 auto;width:auto;padding:16px 22px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+  .done{text-align:center;padding:30px 8px 10px}
+  .done .tick{
+    width:74px;height:74px;margin:0 auto 16px;border-radius:50%;background:var(--accent-soft);
+    display:grid;place-items:center;font-size:36px;animation:pop .35s cubic-bezier(.2,1.4,.5,1) both;
+  }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{margin:0 0 6px;font-size:21px}
+  .done p{margin:4px 0;color:var(--muted);font-size:14.5px}
+  .done .num{font-size:15px;font-weight:700;color:var(--accent);margin:10px 0}
+
+  .chat{
+    margin:20px 0 0;background:var(--card);border-radius:16px;padding:14px;
+    box-shadow:0 2px 12px rgba(10,70,65,.07);text-align:left;
+  }
+  .chat .who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .bubble{background:var(--accent-soft);border-radius:14px 14px 14px 4px;padding:11px 13px;font-size:14px;line-height:1.5;white-space:pre-line}
+
+  .foot{text-align:center;font-size:12px;color:var(--muted);padding:18px 22px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="mark">🧽</div>
+    <h1>СВЕЖО</h1>
+    <div class="sub">клининг · цена сразу, без звонков</div>
+  </header>
+
+  <div class="steps"><i class="on"></i><i></i><i></i></div>
+
+  <main>
+
+    <!-- ШАГ 1 -->
+    <section class="screen on" id="s1">
+      <h2 class="t">Какая уборка нужна?</h2>
+      <p class="hint">Цена считается по площади — двигайте ползунок.</p>
+      <div class="card" id="tip"></div>
+
+      <div class="ploshad">
+        <div class="top">
+          <b><span id="m2">45</span> м²</b>
+          <span>площадь квартиры</span>
+        </div>
+        <input type="range" id="polzunok" min="20" max="150" step="5" value="45">
+        <div class="scale"><span>20 м²</span><span>150 м²</span></div>
+      </div>
+
+      <div class="summary" id="bystro">
+        <div class="row"><span>Предварительно</span><b id="b-cena">—</b></div>
+        <div class="row"><span>Займёт</span><b id="b-vremya">—</b></div>
+      </div>
+
+      <button class="btn" id="next1" disabled>Дальше</button>
+    </section>
+
+    <!-- ШАГ 2 -->
+    <section class="screen" id="s2">
+      <h2 class="t">Что ещё сделать?</h2>
+      <p class="hint">Можно ничего не выбирать.</p>
+      <div id="dopy"></div>
+
+      <h2 class="t" style="margin-top:18px">Когда удобно?</h2>
+      <p class="hint">Точное время согласуем в чате.</p>
+      <div class="when" id="kogda">
+        <button type="button" class="on" data-w="Как можно скорее">Скорее</button>
+        <button type="button" data-w="На этой неделе">На неделе</button>
+        <button type="button" data-w="В выходные">В выходные</button>
+      </div>
+
+      <div class="nav">
+        <button class="btn back" data-back="1">←</button>
+        <button class="btn" id="next2">Дальше</button>
+      </div>
+    </section>
+
+    <!-- ШАГ 3 -->
+    <section class="screen" id="s3">
+      <h2 class="t">Куда прислать расчёт?</h2>
+      <p class="hint">Менеджер подтвердит цену и время.</p>
+      <div class="field">
+        <label class="f" for="imya">Имя</label>
+        <input type="text" id="imya" placeholder="Как к вам обращаться" autocomplete="name">
+        <div class="err" id="e-imya">Напишите имя</div>
+      </div>
+      <div class="field">
+        <label class="f" for="tel">Телефон</label>
+        <input type="tel" id="tel" placeholder="+7 (___) ___-__-__" inputmode="tel" autocomplete="tel">
+        <div class="err" id="e-tel">Телефон нужен, чтобы согласовать время</div>
+      </div>
+      <div class="summary" id="itog"></div>
+      <button class="btn" id="zayavka">Оставить заявку</button>
+      <div class="nav"><button class="btn back" data-back="2">←</button></div>
+    </section>
+
+    <!-- ГОТОВО -->
+    <section class="screen" id="s4">
+      <div class="done">
+        <div class="tick">✓</div>
+        <h2>Заявка принята</h2>
+        <div class="num" id="nomer">—</div>
+        <p id="kogda-itog">—</p>
+        <p>Менеджер напишет в течение 15 минут.</p>
+      </div>
+      <div class="chat">
+        <div class="who">так это выглядит в чате с ботом</div>
+        <div class="bubble" id="soobshenie">—</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="foot" id="podval">
+    Цена предварительная: точную подтвердим после уточнения деталей.
+    Нажимая кнопку, вы соглашаетесь на обработку данных.
+  </div>
+</div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    if (tg.colorScheme === "dark") document.documentElement.classList.add("dark");
+    if (tg.colorScheme === "light") document.documentElement.classList.add("light");
+  }
+  function el(id) { return document.getElementById(id); }
+  function tap() {
+    if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+  }
+  function dengi(n) { return n.toLocaleString("ru-RU") + " ₽"; }
+
+  var TIPY = [
+    { id: "pod", name: "Поддерживающая", meta: "регулярная, раз в неделю", ic: "🧴", m2: 90,  min: 2500 },
+    { id: "gen", name: "Генеральная", meta: "всё, включая труднодоступное", ic: "🧼", m2: 160, min: 4000 },
+    { id: "rem", name: "После ремонта", meta: "пыль, следы краски, клей", ic: "🧱", m2: 240, min: 6000 }
+  ];
+
+  var DOBY = [
+    { id: "okna", name: "Окна", meta: "за одно окно", price: 500 },
+    { id: "holod", name: "Холодильник", meta: "внутри", price: 500 },
+    { id: "balkon", name: "Балкон", meta: "с остеклением", price: 900 },
+    { id: "glazhka", name: "Глажка белья", meta: "до 10 вещей", price: 700 },
+    { id: "divan", name: "Химчистка дивана", meta: "двухместный", price: 1800 }
+  ];
+
+  var v = { tip: null, m2: 45, doby: [], kogda: "Как можно скорее" };
+
+  /* тип */
+  var tipBox = el("tip");
+  TIPY.forEach(function (t) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "opt";
+    b.innerHTML = '<span class="ic"></span><span class="body"><span class="name"></span><span class="meta"></span></span><span class="price"></span>';
+    b.querySelector(".ic").textContent = t.ic;
+    b.querySelector(".name").textContent = t.name;
+    b.querySelector(".meta").textContent = t.meta;
+    b.querySelector(".price").textContent = "от " + dengi(t.min);
+    b.addEventListener("click", function () {
+      tap(); v.tip = t;
+      var vse = tipBox.querySelectorAll(".opt");
+      for (var i = 0; i < vse.length; i++) vse[i].className = vse[i] === b ? "opt on" : "opt";
+      pereschitat();
+      el("next1").disabled = false;
+    });
+    tipBox.appendChild(b);
+  });
+
+  /* допы */
+  var dopyBox = el("dopy");
+  DOBY.forEach(function (d) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "extra";
+    b.innerHTML = '<span class="box"></span><span class="t"></span><span class="p"></span>';
+    b.querySelector(".t").innerHTML = "<b></b><br><span style='font-size:12.5px;color:var(--muted)'></span>";
+    b.querySelector(".t b").textContent = d.name;
+    b.querySelector(".t span").textContent = d.meta;
+    b.querySelector(".p").textContent = "+" + dengi(d.price);
+    b.addEventListener("click", function () {
+      tap();
+      var i = v.doby.indexOf(d.id);
+      if (i >= 0) { v.doby.splice(i, 1); b.className = "extra"; b.querySelector(".box").textContent = ""; }
+      else { v.doby.push(d.id); b.className = "extra on"; b.querySelector(".box").textContent = "✓"; }
+    });
+    dopyBox.appendChild(b);
+  });
+
+  /* ползунок */
+  el("polzunok").addEventListener("input", function () {
+    v.m2 = Number(this.value);
+    el("m2").textContent = v.m2;
+    pereschitat();
+  });
+
+  el("kogda").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    tap();
+    v.kogda = b.getAttribute("data-w");
+    var vse = this.querySelectorAll("button");
+    for (var i = 0; i < vse.length; i++) vse[i].className = vse[i] === b ? "on" : "";
+  });
+
+  function cena() {
+    if (!v.tip) return 0;
+    var summa = Math.max(v.tip.min, Math.round(v.tip.m2 * v.m2 / 10) * 10);
+    v.doby.forEach(function (id) {
+      for (var i = 0; i < DOBY.length; i++) if (DOBY[i].id === id) summa += DOBY[i].price;
+    });
+    return summa;
+  }
+
+  function minut() {
+    if (!v.tip) return 0;
+    var k = v.tip.id === "pod" ? 1.6 : v.tip.id === "gen" ? 2.6 : 3.4;
+    var m = Math.round(v.m2 * k);
+    v.doby.forEach(function () { m += 25; });
+    /* округляем до четверти часа — «3 ч 53 мин» выглядит как ошибка */
+    return Math.max(30, Math.round(m / 15) * 15);
+  }
+
+  function uslug(n) {
+    var o = n % 10, s = n % 100;
+    if (o === 1 && s !== 11) return n + " услуга";
+    if (o >= 2 && o <= 4 && (s < 12 || s > 14)) return n + " услуги";
+    return n + " услуг";
+  }
+
+  function vremya(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    if (!h) return m + " мин";
+    return h + " ч" + (m ? " " + m + " мин" : "");
+  }
+
+  function pereschitat() {
+    var c = cena(), m = minut();
+    el("b-cena").textContent = c ? dengi(c) : "—";
+    el("b-vremya").textContent = m ? vremya(m) : "—";
+  }
+  pereschitat();
+
+  function pokazat(n) {
+    var ekrany = document.querySelectorAll(".screen");
+    for (var i = 0; i < ekrany.length; i++) ekrany[i].className = "screen";
+    el("s" + n).className = "screen on";
+    var polosy = document.querySelectorAll(".steps i");
+    for (var k = 0; k < polosy.length; k++) polosy[k].className = k < Math.min(n, 3) ? "on" : "";
+    el("podval").style.display = n === 4 ? "none" : "block";
+    window.scrollTo(0, 0);
+  }
+
+  el("next1").addEventListener("click", function () { pokazat(2); });
+  el("next2").addEventListener("click", function () { itog(); pokazat(3); });
+
+  var nazad = document.querySelectorAll("[data-back]");
+  for (var j = 0; j < nazad.length; j++) {
+    nazad[j].addEventListener("click", function () { pokazat(Number(this.getAttribute("data-back"))); });
+  }
+
+  function itog() {
+    var c = cena(), m = minut();
+    el("itog").innerHTML =
+      '<div class="row"><span>Уборка</span><b></b></div>' +
+      '<div class="row"><span>Площадь</span><b></b></div>' +
+      '<div class="row"><span>Дополнительно</span><b></b></div>' +
+      '<div class="row"><span>Когда</span><b></b></div>' +
+      '<div class="total"><span>Итого</span><span></span></div>';
+    var b = el("itog").querySelectorAll(".row b");
+    b[0].textContent = v.tip.name;
+    b[1].textContent = v.m2 + " м² · " + vremya(m);
+    b[2].textContent = v.doby.length ? uslug(v.doby.length) : "нет";
+    b[3].textContent = v.kogda;
+    el("itog").querySelector(".total span:last-child").textContent = dengi(c);
+  }
+
+  function telOk(x) { return (x || "").replace(/\D/g, "").length >= 10; }
+  el("tel").addEventListener("blur", function () {
+    var d = (this.value || "").replace(/\D/g, "");
+    if (d.length === 11 && (d[0] === "7" || d[0] === "8")) {
+      this.value = "+7 (" + d.substr(1, 3) + ") " + d.substr(4, 3) + "-" + d.substr(7, 2) + "-" + d.substr(9, 2);
+    } else if (d.length === 10) {
+      this.value = "+7 (" + d.substr(0, 3) + ") " + d.substr(3, 3) + "-" + d.substr(6, 2) + "-" + d.substr(8, 2);
+    }
+  });
+  el("imya").addEventListener("input", function () {
+    if (this.value.trim()) { el("e-imya").className = "err"; this.className = ""; }
+  });
+  el("tel").addEventListener("input", function () {
+    if (telOk(this.value)) { el("e-tel").className = "err"; this.className = ""; }
+  });
+
+  el("zayavka").addEventListener("click", function () {
+    var imya = el("imya").value.trim();
+    var tel = el("tel").value.trim();
+    var ploh = false;
+    if (!imya) { el("e-imya").className = "err show"; el("imya").className = "bad"; ploh = true; }
+    if (!telOk(tel)) { el("e-tel").className = "err show"; el("tel").className = "bad"; ploh = true; }
+    if (ploh) { var f = document.querySelector(".bad"); if (f) f.focus(); return; }
+
+    var nomer = "У-" + (3000 + Math.floor(Math.random() * 6000));
+    var c = cena(), m = minut();
+    var dobryy = v.doby.map(function (id) {
+      for (var i = 0; i < DOBY.length; i++) if (DOBY[i].id === id) return DOBY[i].name;
+      return "";
+    }).filter(Boolean).join(", ");
+
+    var dannye = {
+      nomer: nomer, imya: imya, tel: tel, tip: v.tip.name, m2: v.m2,
+      dopolnitelno: dobryy, kogda: v.kogda, summa: c, minut: m
+    };
+
+    this.disabled = true;
+    this.textContent = "Отправляем…";
+
+    var gotovo = function () {
+      el("nomer").textContent = "Заявка " + nomer;
+      el("kogda-itog").textContent = v.tip.name + " · " + v.m2 + " м² · " + dengi(c);
+      el("soobshenie").textContent =
+        "Спасибо, " + imya + "!\n\n" +
+        v.tip.name + ", " + v.m2 + " м²\n" +
+        (dobryy ? "Дополнительно: " + dobryy + "\n" : "") +
+        "Когда: " + v.kogda + "\n" +
+        "Ориентировочно: " + dengi(c) + " · " + vremya(m) + "\n\n" +
+        "Менеджер напишет в течение 15 минут, уточнит адрес и подтвердит время.";
+      pokazat(4);
+    };
+
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(dannye)); gotovo(); return; } catch (e) {}
+    }
+    gotovo();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Запись на маникюр — Пудра</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --accent:#c8578f; --accent-2:#a83f75; --accent-soft:#fbe9f2;
+    --bg:#fdf7fa; --card:#ffffff; --text:#22161c; --muted:#8a7480;
+    --line:#f0dfe8; --ok:#1f9d55;
+  }
+  html.dark{
+    --accent:#e77ab2; --accent-2:#c8578f; --accent-soft:#2a1a23;
+    --bg:#141013; --card:#1e171c; --text:#f6edf2; --muted:#a08d97;
+    --line:#302329;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not(.light){
+      --accent:#e77ab2; --accent-2:#c8578f; --accent-soft:#2a1a23;
+      --bg:#141013; --card:#1e171c; --text:#f6edf2; --muted:#a08d97;
+      --line:#302329;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text); min-height:100vh;
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .app{max-width:520px;margin:0 auto}
+
+  header{
+    padding:26px 20px 30px; text-align:center; color:#fff;
+    background:linear-gradient(140deg,var(--accent) 0%,var(--accent-2) 100%);
+    border-radius:0 0 26px 26px;
+  }
+  header .mark{
+    width:56px;height:56px;margin:0 auto 12px;border-radius:18px;
+    background:rgba(255,255,255,.18); display:grid;place-items:center;font-size:27px;
+    backdrop-filter:blur(4px);
+  }
+  header h1{margin:0 0 5px;font-size:20px;letter-spacing:.4px;font-weight:800}
+  header .sub{font-size:13.5px;opacity:.92}
+
+  .steps{
+    display:flex;gap:6px;margin:-14px 18px 0;background:var(--card);
+    border-radius:14px;padding:11px 12px;box-shadow:0 6px 20px rgba(120,50,85,.10);
+    position:relative;z-index:2;
+  }
+  .steps i{
+    flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .25s;
+  }
+  .steps i.on{background:var(--accent)}
+
+  main{padding:18px 16px 0}
+  .screen{display:none;animation:in .25s ease both}
+  .screen.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h2.t{margin:0 0 3px;font-size:17px;font-weight:750}
+  p.hint{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+
+  .card{
+    background:var(--card);border-radius:16px;padding:6px;
+    box-shadow:0 2px 12px rgba(120,50,85,.07);margin-bottom:14px;
+  }
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:none;border:0;border-radius:12px;padding:13px 12px;cursor:pointer;
+    font:inherit;color:inherit;transition:background .15s;
+  }
+  .opt+.opt{border-top:1px solid var(--line);border-radius:0}
+  .opt:hover{background:var(--accent-soft)}
+  .opt.on{background:var(--accent-soft)}
+  .opt .dot{
+    width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--line);
+    display:grid;place-items:center;transition:border-color .15s;
+  }
+  .opt.on .dot{border-color:var(--accent)}
+  .opt.on .dot::after{
+    content:"";width:10px;height:10px;border-radius:50%;background:var(--accent);
+  }
+  .opt .body{flex:1;min-width:0}
+  .opt .name{display:block;font-size:15px;font-weight:600}
+  .opt .meta{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .opt .price{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap}
+
+  .days{display:flex;gap:8px;margin-bottom:12px}
+  .day{
+    flex:1;padding:9px 4px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);font:inherit;cursor:pointer;text-align:center;
+    transition:all .15s;color:var(--text);
+  }
+  .day b{display:block;font-size:14px;font-weight:700}
+  .day span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .day.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .day.on span{color:rgba(255,255,255,.85)}
+
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .slot{
+    padding:12px 6px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);font:inherit;font-size:15px;font-weight:600;
+    cursor:pointer;color:var(--text);transition:all .15s;
+  }
+  .slot.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .slot.busy{
+    color:var(--muted);background:transparent;border-style:dashed;
+    cursor:not-allowed;font-weight:400;font-size:12.5px;
+  }
+
+  label.f{display:block;font-size:13.5px;font-weight:600;margin:0 0 6px 2px}
+  input[type=text],input[type=tel]{
+    width:100%;padding:13px 14px;font-size:16px;font-family:inherit;
+    color:var(--text);background:var(--card);border:1px solid var(--line);
+    border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.bad{border-color:#d33b3b}
+  .field{margin-bottom:13px}
+  .err{color:#d33b3b;font-size:12.5px;margin-top:5px;display:none}
+  .err.show{display:block}
+
+  .summary{
+    background:var(--accent-soft);border-radius:14px;padding:14px 16px;margin:16px 0 14px;
+  }
+  .summary .row{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:3px 0}
+  .summary .row span:first-child{color:var(--muted)}
+  .summary .row b{font-weight:650}
+  .summary .total{
+    display:flex;justify-content:space-between;margin-top:9px;padding-top:9px;
+    border-top:1px solid rgba(200,87,143,.25);font-size:16px;font-weight:800;
+  }
+
+  .btn{
+    width:100%;padding:16px;font-size:16px;font-weight:700;font-family:inherit;
+    color:#fff;background:var(--accent);border:0;border-radius:14px;cursor:pointer;
+    transition:background .15s,transform .06s;
+  }
+  .btn:active{transform:scale(.99)}
+  .btn:disabled{background:var(--muted);cursor:default}
+  .btn.ghost{
+    background:transparent;color:var(--muted);font-weight:500;font-size:14.5px;
+    padding:12px;margin-top:6px;
+  }
+  .nav{display:flex;gap:10px;margin-top:6px}
+  .nav .btn{flex:1}
+  .nav .btn.back{
+    flex:0 0 auto;width:auto;padding:16px 22px;background:transparent;
+    color:var(--muted);border:1px solid var(--line);
+  }
+
+  /* экран успеха */
+  .done{text-align:center;padding:30px 8px 10px}
+  .done .tick{
+    width:74px;height:74px;margin:0 auto 16px;border-radius:50%;
+    background:var(--accent-soft);display:grid;place-items:center;font-size:36px;
+    animation:pop .35s cubic-bezier(.2,1.4,.5,1) both;
+  }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .done h2{margin:0 0 6px;font-size:21px}
+  .done p{margin:4px 0;color:var(--muted);font-size:14.5px}
+  .done .num{font-size:15px;font-weight:700;color:var(--accent);margin:10px 0}
+
+  /* как это выглядит в чате с ботом */
+  .chat{
+    margin:20px 0 0;background:var(--card);border-radius:16px;padding:14px;
+    box-shadow:0 2px 12px rgba(120,50,85,.07);text-align:left;
+  }
+  .chat .who{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:9px;
+  }
+  .bubble{
+    background:var(--accent-soft);border-radius:14px 14px 14px 4px;
+    padding:11px 13px;font-size:14px;line-height:1.5;white-space:pre-line;
+  }
+  .foot{
+    text-align:center;font-size:12px;color:var(--muted);
+    padding:18px 22px 0;line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="mark">💅</div>
+    <h1>ПУДРА</h1>
+    <div class="sub">студия маникюра · запись за 40 секунд</div>
+  </header>
+
+  <div class="steps"><i class="on"></i><i></i><i></i></div>
+
+  <main>
+
+    <!-- ШАГ 1 -->
+    <section class="screen on" id="s1">
+      <h2 class="t">Что будем делать?</h2>
+      <p class="hint">Выберите услугу — цена и время покажутся сразу.</p>
+      <div class="card" id="uslugi"></div>
+      <button class="btn" id="next1" disabled>Дальше</button>
+    </section>
+
+    <!-- ШАГ 2 -->
+    <section class="screen" id="s2">
+      <h2 class="t">Когда вам удобно?</h2>
+      <p class="hint">Свободные окна на ближайшие дни.</p>
+      <div class="days" id="dni"></div>
+      <div class="slots" id="sloty"></div>
+      <div class="nav">
+        <button class="btn back" data-back="1">←</button>
+        <button class="btn" id="next2" disabled>Дальше</button>
+      </div>
+    </section>
+
+    <!-- ШАГ 3 -->
+    <section class="screen" id="s3">
+      <h2 class="t">Как вас записать?</h2>
+      <p class="hint">Мастер напишет за час до визита — напомнит.</p>
+      <div class="field">
+        <label class="f" for="imya">Имя</label>
+        <input type="text" id="imya" placeholder="Как к вам обращаться" autocomplete="name">
+        <div class="err" id="e-imya">Напишите имя</div>
+      </div>
+      <div class="field">
+        <label class="f" for="tel">Телефон</label>
+        <input type="tel" id="tel" placeholder="+7 (___) ___-__-__" inputmode="tel" autocomplete="tel">
+        <div class="err" id="e-tel">Нужен телефон — иначе не подтвердить запись</div>
+      </div>
+      <div class="summary" id="itog"></div>
+      <button class="btn" id="zapis">Записаться</button>
+      <div class="nav"><button class="btn back" data-back="2">←</button></div>
+    </section>
+
+    <!-- ГОТОВО -->
+    <section class="screen" id="s4">
+      <div class="done">
+        <div class="tick">✓</div>
+        <h2>Вы записаны</h2>
+        <div class="num" id="nomer">—</div>
+        <p id="kogda">—</p>
+        <p>Напомним в чате за час до визита.</p>
+      </div>
+      <div class="chat">
+        <div class="who">так это выглядит в чате с ботом</div>
+        <div class="bubble" id="soobshenie">—</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="foot" id="podval">
+    Нажимая «Записаться», вы соглашаетесь на обработку указанных данных.
+  </div>
+</div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    if (tg.colorScheme === "dark") document.documentElement.classList.add("dark");
+    if (tg.colorScheme === "light") document.documentElement.classList.add("light");
+  }
+
+  function el(id) { return document.getElementById(id); }
+  function tap() {
+    if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+  }
+
+  var USLUGI = [
+    { id: "gel",  name: "Маникюр + гель-лак", meta: "аппаратный, с укреплением", price: 2500, min: 100 },
+    { id: "nar",  name: "Наращивание",        meta: "гель, любая длина",          price: 3800, min: 150 },
+    { id: "sn",   name: "Снятие и уход",      meta: "если делали в другом месте", price: 1200, min: 40  },
+    { id: "diz",  name: "Дизайн",             meta: "френч, втирка, слайдеры",    price: 500,  min: 20  }
+  ];
+
+  var DEN = [
+    { key: "d1", label: "сегодня",  day: "пт", slots: ["10:00", "12:30", "15:00", null, "18:30"] },
+    { key: "d2", label: "завтра",   day: "сб", slots: ["09:30", "11:00", null, "16:00", "17:30"] },
+    { key: "d3", label: "послезавтра", day: "вс", slots: [null, "12:00", "14:30", "17:00", "19:00"] }
+  ];
+
+  var vybor = { usluga: null, den: 0, slot: null };
+
+  /* ---------- шаг 1 ---------- */
+  var spisok = el("uslugi");
+  USLUGI.forEach(function (u, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt";
+    b.innerHTML =
+      '<span class="dot"></span>' +
+      '<span class="body"><span class="name"></span><span class="meta"></span></span>' +
+      '<span class="price"></span>';
+    b.querySelector(".name").textContent = u.name;
+    b.querySelector(".meta").textContent = u.meta + " · " + vremya(u.min);
+    b.querySelector(".price").textContent = u.price.toLocaleString("ru-RU") + " ₽";
+    b.addEventListener("click", function () {
+      tap();
+      vybor.usluga = u;
+      var vse = spisok.querySelectorAll(".opt");
+      for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "opt on" : "opt";
+      el("next1").disabled = false;
+    });
+    spisok.appendChild(b);
+  });
+
+  function vremya(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    if (!h) return m + " мин";
+    return h + " ч" + (m ? " " + m + " мин" : "");
+  }
+
+  /* ---------- шаг 2 ---------- */
+  var dni = el("dni");
+  DEN.forEach(function (d, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "day" + (i === 0 ? " on" : "");
+    b.innerHTML = "<b></b><span></span>";
+    b.querySelector("b").textContent = d.label;
+    b.querySelector("span").textContent = d.day;
+    b.addEventListener("click", function () {
+      tap();
+      vybor.den = i; vybor.slot = null;
+      var vse = dni.querySelectorAll(".day");
+      for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "day on" : "day";
+      sloty();
+    });
+    dni.appendChild(b);
+  });
+
+  function sloty() {
+    var box = el("sloty");
+    box.innerHTML = "";
+    el("next2").disabled = true;
+    DEN[vybor.den].slots.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button";
+      if (!s) {
+        b.className = "slot busy";
+        b.textContent = "занято";
+        b.disabled = true;
+      } else {
+        b.className = "slot";
+        b.textContent = s;
+        b.addEventListener("click", function () {
+          tap();
+          vybor.slot = s;
+          var vse = box.querySelectorAll(".slot");
+          for (var j = 0; j < vse.length; j++) vse[j].className = vse[j] === b ? "slot on" : "slot";
+          el("next2").disabled = false;
+        });
+      }
+      box.appendChild(b);
+    });
+  }
+  sloty();
+
+  /* ---------- переходы ---------- */
+  function pokazat(n) {
+    var ekrany = document.querySelectorAll(".screen");
+    for (var i = 0; i < ekrany.length; i++) ekrany[i].className = "screen";
+    el("s" + n).className = "screen on";
+    var polosy = document.querySelectorAll(".steps i");
+    for (var k = 0; k < polosy.length; k++) {
+      polosy[k].className = k < Math.min(n, 3) ? "on" : "";
+    }
+    el("podval").style.display = n === 4 ? "none" : "block";
+    window.scrollTo(0, 0);
+  }
+
+  el("next1").addEventListener("click", function () { pokazat(2); });
+  el("next2").addEventListener("click", function () { itog(); pokazat(3); });
+
+  var nazad = document.querySelectorAll("[data-back]");
+  for (var i = 0; i < nazad.length; i++) {
+    nazad[i].addEventListener("click", function () {
+      pokazat(Number(this.getAttribute("data-back")));
+    });
+  }
+
+  /* ---------- шаг 3 ---------- */
+  function itog() {
+    var u = vybor.usluga, d = DEN[vybor.den];
+    el("itog").innerHTML =
+      '<div class="row"><span>Услуга</span><b></b></div>' +
+      '<div class="row"><span>Когда</span><b></b></div>' +
+      '<div class="row"><span>Займёт</span><b></b></div>' +
+      '<div class="total"><span>Итого</span><span></span></div>';
+    var rowy = el("itog").querySelectorAll(".row b");
+    rowy[0].textContent = u.name;
+    rowy[1].textContent = d.label + ", " + d.day + " в " + vybor.slot;
+    rowy[2].textContent = vremya(u.min);
+    el("itog").querySelector(".total span:last-child").textContent =
+      u.price.toLocaleString("ru-RU") + " ₽";
+  }
+
+  function telOk(v) { return (v || "").replace(/\D/g, "").length >= 10; }
+
+  el("tel").addEventListener("blur", function () {
+    var d = (this.value || "").replace(/\D/g, "");
+    if (d.length === 11 && (d[0] === "7" || d[0] === "8")) {
+      this.value = "+7 (" + d.substr(1, 3) + ") " + d.substr(4, 3) + "-" + d.substr(7, 2) + "-" + d.substr(9, 2);
+    } else if (d.length === 10) {
+      this.value = "+7 (" + d.substr(0, 3) + ") " + d.substr(3, 3) + "-" + d.substr(6, 2) + "-" + d.substr(8, 2);
+    }
+  });
+
+  el("imya").addEventListener("input", function () {
+    if (this.value.trim()) { el("e-imya").className = "err"; this.className = ""; }
+  });
+  el("tel").addEventListener("input", function () {
+    if (telOk(this.value)) { el("e-tel").className = "err"; this.className = ""; }
+  });
+
+  el("zapis").addEventListener("click", function () {
+    var imya = el("imya").value.trim();
+    var tel = el("tel").value.trim();
+    var ploh = false;
+    if (!imya) { el("e-imya").className = "err show"; el("imya").className = "bad"; ploh = true; }
+    if (!telOk(tel)) { el("e-tel").className = "err show"; el("tel").className = "bad"; ploh = true; }
+    if (ploh) { (document.querySelector(".bad") || {}).focus && document.querySelector(".bad").focus(); return; }
+
+    var u = vybor.usluga, d = DEN[vybor.den];
+    var nomer = "П-" + (1000 + Math.floor(Math.random() * 9000));
+    var dannye = {
+      nomer: nomer, imya: imya, tel: tel,
+      usluga: u.name, kogda: d.label + ", " + d.day + " в " + vybor.slot,
+      summa: u.price, minut: u.min
+    };
+
+    this.disabled = true;
+    this.textContent = "Записываем…";
+
+    var gotovo = function () {
+      el("nomer").textContent = "Запись " + nomer;
+      el("kogda").textContent = u.name + " · " + d.label + ", " + d.day + " в " + vybor.slot;
+      el("soobshenie").textContent =
+        "Записала вас, " + imya + "!\n\n" +
+        u.name + "\n" + d.label + ", " + d.day + " в " + vybor.slot + "\n" +
+        u.price.toLocaleString("ru-RU") + " ₽ · " + vremya(u.min) + "\n\n" +
+        "За час до визита напомню. Если планы поменяются — напишите здесь, перенесём.";
+      pokazat(4);
+    };
+
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(dannye)); gotovo(); return; } catch (e) {}
+    }
+    gotovo();
+  });
+})();
+</script>
+</body>
+</html>
